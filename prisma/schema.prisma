@@ -1,0 +1,129 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  company   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  meetings Meeting[]
+  sessions Session[]
+
+  @@map("users")
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  userId    String
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model Meeting {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  audioUrl    String?
+  duration    Int? // in seconds
+  status      MeetingStatus @default(UPLOADED)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  transcription Transcription?
+  summary       Summary?
+  actionItems   ActionItem[]
+  participants  Participant[]
+
+  @@map("meetings")
+}
+
+model Transcription {
+  id        String   @id @default(cuid())
+  content   String
+  language  String   @default("en")
+  confidence Float?
+  createdAt DateTime @default(now())
+
+  meetingId String  @unique
+  meeting   Meeting @relation(fields: [meetingId], references: [id], onDelete: Cascade)
+
+  @@map("transcriptions")
+}
+
+model Summary {
+  id        String   @id @default(cuid())
+  content   String
+  keyPoints String[]
+  decisions String[]
+  createdAt DateTime @default(now())
+
+  meetingId String  @unique
+  meeting   Meeting @relation(fields: [meetingId], references: [id], onDelete: Cascade)
+
+  @@map("summaries")
+}
+
+model ActionItem {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  assignee    String?
+  dueDate     DateTime?
+  status      ActionItemStatus @default(PENDING)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  meetingId String
+  meeting   Meeting @relation(fields: [meetingId], references: [id], onDelete: Cascade)
+
+  @@map("action_items")
+}
+
+model Participant {
+  id        String   @id @default(cuid())
+  name      String
+  email     String?
+  role      String?
+  createdAt DateTime @default(now())
+
+  meetingId String
+  meeting   Meeting @relation(fields: [meetingId], references: [id], onDelete: Cascade)
+
+  @@map("participants")
+}
+
+enum MeetingStatus {
+  UPLOADED
+  PROCESSING
+  TRANSCRIBING
+  ANALYZING
+  COMPLETED
+  FAILED
+}
+
+enum ActionItemStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
