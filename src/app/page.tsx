@@ -1,11 +1,9 @@
 "use client";
 
-import { Sidebar } from "@/components/sidebar";
-import { AgentConfig } from "@/components/agent-config";
-import { AnimatedAIChat } from "@/components/ui/animated-ai-chat";
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { MessageSquare, Settings } from "lucide-react";
+import { Button } from "~/components/ui/button";
+import { Bot, MessageSquare, Settings, Upload, FileText, Mic, Calendar } from "lucide-react";
+import Link from "next/link";
+import { motion } from "framer-motion";
 
 export default function HomePage() {
   return (

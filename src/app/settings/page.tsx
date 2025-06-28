@@ -2,10 +2,10 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
-import { Separator } from "@/components/ui/separator";
+import { Button } from "~/components/ui/button";
+import { Label } from "~/components/ui/label";
+import { Switch } from "~/components/ui/switch";
+import { Separator } from "~/components/ui/separator";
 import { ArrowLeft, Bot, Settings, Zap, Calendar, MessageSquare, FileText, Check, Plus, ExternalLink, User, Bell, Shield, CreditCard } from "lucide-react";
 import { motion } from "framer-motion";
 
@@ -368,7 +368,7 @@ export default function SettingsPage() {
                         <Label className="text-sm font-medium">Email</Label>
                         <input
                           type="email"
-                          defaultValue="john@example.com"
+                          defaultValue="john~example.com"
                           className="w-full mt-1 px-3 py-2 bg-background border border-input rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ring"
                         />
                       </div>

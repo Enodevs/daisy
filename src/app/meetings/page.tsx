@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
+import { Button } from "~/components/ui/button";
 import { ArrowLeft, Upload, Mic, FileText, Calendar, Clock, User, MoreVertical, Play, Download } from "lucide-react";
 import { motion } from "framer-motion";
 
