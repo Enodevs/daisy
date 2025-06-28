@@ -1,10 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
+import { Button } from "~/components/ui/button";
+import { Separator } from "~/components/ui/separator";
 import { Plus, Settings, MessageSquare, Bot, Moon, Sun } from "lucide-react";
-import { useTheme } from "@/components/theme-provider";
+import { useTheme } from "~/components/theme-provider";
 import { motion } from "framer-motion";
 
 interface ChatEntry {

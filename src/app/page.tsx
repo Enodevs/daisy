@@ -1,10 +1,10 @@
 "use client";
 
-import { Sidebar } from "@/components/sidebar";
-import { AgentConfig } from "@/components/agent-config";
-import { AnimatedAIChat } from "@/components/ui/animated-ai-chat";
+import { Sidebar } from "~/components/sidebar";
+import { AgentConfig } from "~/components/agent-config";
+import { AnimatedAIChat } from "~/components/ui/animated-ai-chat";
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
+import { Button } from "~/components/ui/button";
 import { MessageSquare, Settings } from "lucide-react";
 
 export default function Dashboard() {
