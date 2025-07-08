@@ -1,4 +1,5 @@
 import { AnimatedAIChat } from "~/components/ui/animated-ai-chat";
+import { AnimatedAIChatNew } from "~/components/ui/animated-ai-chat-new";
 import Link from "next/link";
 import { Button } from "~/components/ui/button";
 import { ArrowLeft, Bot } from "lucide-react";
@@ -33,7 +34,7 @@ export default function ChatPage() {
 
       {/* Chat Interface */}
       <div className="h-[calc(100vh-80px)]">
-        <AnimatedAIChat />
+        <AnimatedAIChatNew />
       </div>
     </div>
   );
