@@ -19,16 +19,16 @@ import {
     Command,
     Bot,
     User,
-    Clock,
-    CheckCheck,
-    Check,
     Mic,
-    Calendar,
     FileText,
     Zap,
+    Calendar,
+    CheckCheck,
+    Check
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import * as React from "react"
+import ChatInputBox from "../ChatInputBox";
 
 interface Message {
   id: string;
@@ -163,84 +163,7 @@ const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
 Textarea.displayName = "Textarea"
 
 // Mock conversation data
-const mockConversations: Message[] = [
-  {
-    id: "1",
-    content: "Hi Daisy! I just finished a team meeting and need help with the recording.",
-    sender: "user",
-    timestamp: new Date(Date.now() - 3600000), // 1 hour ago
-    isRead: true
-  },
-  {
-    id: "2",
-    content: "Hello! I'd be happy to help you with your meeting recording. I can transcribe the audio, generate summaries, and extract action items. Would you like to upload the audio file?",
-    sender: "ai",
-    timestamp: new Date(Date.now() - 3590000),
-    isRead: true
-  },
-  {
-    id: "3",
-    content: "Yes, please! Here's the recording from our sprint planning session.",
-    sender: "user",
-    timestamp: new Date(Date.now() - 3580000),
-    hasAttachment: true,
-    attachmentType: "audio",
-    attachmentName: "sprint-planning-2024.mp3",
-    isRead: true
-  },
-  {
-    id: "4",
-    content: "Perfect! I've received your audio file. I'm now transcribing it using OpenAI's Whisper model. This should take about 2-3 minutes for a typical meeting. ⚡",
-    sender: "ai",
-    timestamp: new Date(Date.now() - 3570000),
-    emoji: "⚡",
-    isRead: true
-  },
-  {
-    id: "5",
-    content: "Great! While you're processing that, can you tell me about your integration options?",
-    sender: "user",
-    timestamp: new Date(Date.now() - 3560000),
-    isRead: true
-  },
-  {
-    id: "6",
-    content: "Absolutely! I integrate with all your favorite tools:\n\n• Google Calendar - Auto-sync action items as events\n• Slack - Send summaries to channels\n• Notion - Save transcripts as pages\n• Zapier - Connect to 1000+ apps\n\nWhich integration interests you most? 🔗",
-    sender: "ai",
-    timestamp: new Date(Date.now() - 3550000),
-    emoji: "🔗",
-    isRead: true
-  },
-  {
-    id: "7",
-    content: "The Google Calendar integration sounds perfect for our team!",
-    sender: "user",
-    timestamp: new Date(Date.now() - 3540000),
-    isRead: true
-  },
-  {
-    id: "8",
-    content: "Excellent choice! The Google Calendar integration will automatically create calendar events for each action item with:\n\n✅ Task title and description\n✅ Assigned team member\n✅ Due date from the meeting\n✅ Meeting context and notes\n\nWould you like me to set this up for you?",
-    sender: "ai",
-    timestamp: new Date(Date.now() - 3530000),
-    isRead: true
-  },
-  {
-    id: "9",
-    content: "Yes, let's set it up! Also, your transcription should be done by now, right?",
-    sender: "user",
-    timestamp: new Date(Date.now() - 3520000),
-    isRead: true
-  },
-  {
-    id: "10",
-    content: "You're absolutely right! ✨ Your transcription is complete. I found 5 action items, 3 key decisions, and identified 6 participants. Here's a quick summary:\n\n📋 **Key Decisions:**\n• Move to weekly sprints\n• Implement new testing framework\n• Hire 2 additional developers\n\n🎯 **Action Items:**\n• John: Set up CI/CD pipeline (Due: Friday)\n• Sarah: Design new user onboarding (Due: Next Tuesday)\n• Mike: Research testing tools (Due: Thursday)\n\nWould you like the full transcript or shall I sync these action items to your calendar?",
-    sender: "ai",
-    timestamp: new Date(Date.now() - 3510000),
-    emoji: "✨",
-    isRead: false
-  }
-];
+const mockConversations: Message[] = [];
 
 // Intelligent suggestion system
 const baseSuggestions: Suggestion[] = [
@@ -764,132 +687,13 @@ export function AnimatedAIChat() {
                 )}
             </AnimatePresence>
 
-            {/* Input Area */}
-            <div className="p-6 border-t border-border bg-card/50">
-                <AnimatePresence>
-                    {showCommandPalette && (
-                        <motion.div 
-                            ref={commandPaletteRef}
-                            className="mb-4 backdrop-blur-xl bg-popover/95 rounded-lg shadow-lg border border-border overflow-hidden"
-                            initial={{ opacity: 0, y: 5 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: 5 }}
-                            transition={{ duration: 0.15 }}
-                        >
-                            <div className="py-1">
-                                {commandSuggestions.map((suggestion, index) => (
-                                    <motion.div
-                                        key={suggestion.prefix}
-                                        className={cn(
-                                            "flex items-center gap-2 px-3 py-2 text-xs transition-colors cursor-pointer",
-                                            activeSuggestion === index 
-                                                ? "bg-accent text-accent-foreground" 
-                                                : "text-muted-foreground hover:bg-accent/50"
-                                        )}
-                                        onClick={() => selectCommandSuggestion(index)}
-                                        initial={{ opacity: 0 }}
-                                        animate={{ opacity: 1 }}
-                                        transition={{ delay: index * 0.03 }}
-                                    >
-                                        <div className="w-5 h-5 flex items-center justify-center text-muted-foreground">
-                                            {suggestion.icon}
-                                        </div>
-                                        <div className="font-medium">{suggestion.label}</div>
-                                        <div className="text-muted-foreground text-xs ml-1">
-                                            {suggestion.prefix}
-                                        </div>
-                                    </motion.div>
-                                ))}
-                            </div>
-                        </motion.div>
-                    )}
-                </AnimatePresence>
-
-                <AnimatePresence>
-                    {attachments.length > 0 && (
-                        <motion.div 
-                            className="mb-4 flex gap-2 flex-wrap"
-                            initial={{ opacity: 0, height: 0 }}
-                            animate={{ opacity: 1, height: "auto" }}
-                            exit={{ opacity: 0, height: 0 }}
-                        >
-                            {attachments.map((file, index) => (
-                                <motion.div
-                                    key={index}
-                                    className="flex items-center gap-2 text-xs bg-secondary py-1.5 px-3 rounded-lg text-secondary-foreground"
-                                    initial={{ opacity: 0, scale: 0.9 }}
-                                    animate={{ opacity: 1, scale: 1 }}
-                                    exit={{ opacity: 0, scale: 0.9 }}
-                                >
-                                    <Mic className="w-3 h-3" />
-                                    <span>{file}</span>
-                                    <button 
-                                        onClick={() => removeAttachment(index)}
-                                        className="text-muted-foreground hover:text-foreground transition-colors"
-                                    >
-                                        <XIcon className="w-3 h-3" />
-                                    </button>
-                                </motion.div>
-                            ))}
-                        </motion.div>
-                    )}
-                </AnimatePresence>
-
-                <div className="flex items-end gap-3">
-                    <button 
-                        onClick={handleAttachFile}
-                        className="p-2 text-muted-foreground hover:text-foreground rounded-lg transition-colors hover:bg-accent"
-                    >
-                        <Paperclip className="w-5 h-5" />
-                    </button>
-                    
-                    <div className="flex-1 relative">
-                        <textarea
-                            ref={textareaRef}
-                            value={value}
-                            onChange={(e) => {
-                                setValue(e.target.value);
-                                adjustHeight();
-                            }}
-                            onKeyDown={handleKeyDown}
-                            onFocus={() => setInputFocused(true)}
-                            onBlur={() => setInputFocused(false)}
-                            placeholder="Ask Daisy a question..."
-                            className="w-full px-4 py-3 bg-background border border-input rounded-xl text-sm resize-none focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent"
-                            style={{ minHeight: '44px' }}
-                        />
-                    </div>
-
-                    <button
-                        data-command-button
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            setShowCommandPalette(prev => !prev);
-                        }}
-                        className={cn(
-                            "p-2 text-muted-foreground hover:text-foreground rounded-lg transition-colors hover:bg-accent",
-                            showCommandPalette && "bg-accent text-accent-foreground"
-                        )}
-                    >
-                        <Command className="w-5 h-5" />
-                    </button>
-
-                    <motion.button
-                        onClick={handleSendMessage}
-                        disabled={!value.trim() || isTyping}
-                        className={cn(
-                            "p-3 rounded-xl transition-all",
-                            value.trim() && !isTyping
-                                ? "bg-primary text-primary-foreground hover:bg-primary/90"
-                                : "bg-muted text-muted-foreground cursor-not-allowed"
-                        )}
-                        whileHover={value.trim() && !isTyping ? { scale: 1.05 } : {}}
-                        whileTap={value.trim() && !isTyping ? { scale: 0.95 } : {}}
-                    >
-                        <SendIcon className="w-5 h-5" />
-                    </motion.button>
-                </div>
-            </div>
+            <ChatInputBox
+                placeholder="Ask Daisy a question..."
+                value={value}
+                onChange={setValue}
+                onSend={handleSendMessage}
+                disabled={isTyping}
+            />
         </div>
     );
 }

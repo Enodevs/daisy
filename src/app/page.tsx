@@ -26,6 +26,7 @@ import {
 import Image from "next/image";
 import Link from "next/link";
 import { motion } from "framer-motion";
+import { AnimatedAIChat } from "~/components/ui/animated-ai-chat";
 
 export default function HomePage() {
   return (
@@ -610,31 +611,9 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Final CTA */}
-      <section className="py-24 px-4 bg-primary text-primary-foreground">
-        <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-3xl md:text-5xl font-bold mb-6">
-            Ready to transform your meetings?
-          </h2>
-          <p className="text-xl mb-8 opacity-90">
-            Join thousands of teams already using Daisy to make their meetings more productive.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link href="/chat">
-              <Button size="lg" variant="secondary" className="w-full sm:w-auto">
-                <MessageSquare className="w-5 h-5 mr-2" />
-                Start Free Trial
-              </Button>
-            </Link>
-            <Button size="lg" variant="outline" className="w-full sm:w-auto border-primary-foreground text-primary-foreground hover:bg-primary-foreground hover:text-primary">
-              <Calendar className="w-5 h-5 mr-2" />
-              Schedule Demo
-            </Button>
-          </div>
-          <p className="text-sm mt-6 opacity-75">
-            No credit card required • 14-day free trial • Cancel anytime
-          </p>
-        </div>
+      {/* Chat Interface */}
+      <section className="py-24 px-4 bg-background">
+        <AnimatedAIChat />
       </section>
 
       {/* Footer */}
