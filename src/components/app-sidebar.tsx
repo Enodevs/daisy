@@ -2,22 +2,21 @@
 
 import * as React from "react"
 import {
-    AudioWaveform,
-    BookOpen,
     Bot,
-    Command,
-    Frame,
-    GalleryVerticalEnd,
-    Map,
-    PieChart,
+    MessageSquare,
+    Mic,
+    Calendar,
+    FileText,
+    Zap,
+    Users,
     Settings2,
-    SquareTerminal,
+    CreditCard,
+    HelpCircle,
+    Plus,
 } from "lucide-react"
 
 import { NavMain } from "~/components/nav-main"
-import { NavProjects } from "~/components/nav-projects"
 import { NavUser } from "~/components/nav-user"
-import { TeamSwitcher } from "~/components/team-switcher"
 import {
     Sidebar,
     SidebarContent,
@@ -29,129 +28,209 @@ import {
 // This is sample data.
 const data = {
     user: {
-        name: "shadcn",
-        email: "m@example.com",
+        name: "John Doe",
+        email: "john@example.com",
         avatar: "/avatars/shadcn.jpg",
     },
-    teams: [
-        {
-            name: "Acme Inc",
-            logo: GalleryVerticalEnd,
-            plan: "Enterprise",
-        },
-        {
-            name: "Acme Corp.",
-            logo: AudioWaveform,
-            plan: "Startup",
-        },
-        {
-            name: "Evil Corp.",
-            logo: Command,
-            plan: "Free",
-        },
-    ],
     navMain: [
         {
-            title: "Playground",
-            url: "#",
-            icon: SquareTerminal,
+            title: "Chat",
+            url: "/chat",
+            icon: MessageSquare,
             isActive: true,
+        },
+        {
+            title: "Meetings",
+            url: "/meetings",
+            icon: Mic,
             items: [
                 {
-                    title: "History",
-                    url: "#",
+                    title: "Recent",
+                    url: "/meetings",
                 },
                 {
-                    title: "Starred",
-                    url: "#",
+                    title: "Upload Audio",
+                    url: "/meetings/upload",
                 },
                 {
-                    title: "Settings",
-                    url: "#",
+                    title: "Live Recording",
+                    url: "/meetings/record",
                 },
             ],
         },
         {
-            title: "Models",
-            url: "#",
-            icon: Bot,
+            title: "Transcripts",
+            url: "/transcripts",
+            icon: FileText,
             items: [
                 {
-                    title: "Genesis",
-                    url: "#",
+                    title: "All Transcripts",
+                    url: "/transcripts",
                 },
                 {
-                    title: "Explorer",
-                    url: "#",
+                    title: "Summaries",
+                    url: "/transcripts/summaries",
                 },
                 {
-                    title: "Quantum",
-                    url: "#",
+                    title: "Action Items",
+                    url: "/transcripts/actions",
                 },
             ],
         },
         {
-            title: "Documentation",
-            url: "#",
-            icon: BookOpen,
+            title: "Calendar",
+            url: "/calendar",
+            icon: Calendar,
             items: [
                 {
-                    title: "Introduction",
-                    url: "#",
+                    title: "Upcoming Meetings",
+                    url: "/calendar",
                 },
                 {
-                    title: "Get Started",
-                    url: "#",
+                    title: "Schedule Meeting",
+                    url: "/calendar/schedule",
                 },
                 {
-                    title: "Tutorials",
-                    url: "#",
+                    title: "Sync Settings",
+                    url: "/calendar/sync",
+                },
+            ],
+        },
+        {
+            title: "Integrations",
+            url: "/integrations",
+            icon: Zap,
+            items: [
+                {
+                    title: "Connected Apps",
+                    url: "/integrations",
                 },
                 {
-                    title: "Changelog",
-                    url: "#",
+                    title: "Browse All",
+                    url: "/integrations/browse",
+                },
+                {
+                    title: "API Keys",
+                    url: "/integrations/api",
                 },
             ],
         },
         {
             title: "Settings",
-            url: "#",
+            url: "/settings",
             icon: Settings2,
             items: [
                 {
-                    title: "General",
-                    url: "#",
+                    title: "Agent Config",
+                    url: "/settings",
                 },
                 {
-                    title: "Team",
-                    url: "#",
+                    title: "Account",
+                    url: "/settings/account",
                 },
                 {
                     title: "Billing",
-                    url: "#",
-                },
-                {
-                    title: "Limits",
-                    url: "#",
+                    url: "/settings/billing",
                 },
             ],
         },
     ],
-    projects: [
+    quickActions: [
         {
-            name: "Design Engineering",
-            url: "#",
-            icon: Frame,
+            name: "New Chat",
+            url: "/chat",
+            icon: Plus,
         },
         {
-            name: "Sales & Marketing",
-            url: "#",
-            icon: PieChart,
+            name: "Upload Audio",
+            url: "/meetings/upload",
+            icon: Mic,
         },
         {
-            name: "Travel",
-            url: "#",
-            icon: Map,
+            name: "Help & Support",
+            url: "/help",
+            icon: HelpCircle,
+        },
+    ],
+}
+
+function SidebarBrand() {
+    return (
+        <div className="flex items-center gap-3 px-2 py-4">
+            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+                <span className="text-lg">🌸</span>
+            </div>
+            <div className="flex flex-col">
+                <span className="text-lg font-semibold text-foreground">Daisy</span>
+                <span className="text-xs text-muted-foreground">AI Meeting Assistant</span>
+            </div>
+        </div>
+    )
+}
+
+function QuickActions({ actions }: { actions: typeof data.quickActions }) {
+    return (
+        <div className="px-2 py-4 border-t border-border">
+            <div className="space-y-1">
+                <h4 className="text-xs font-medium text-muted-foreground px-2 mb-2">Quick Actions</h4>
+                {actions.map((action) => (
+                    <a
+                        key={action.name}
+                        href={action.url}
+                        className="flex items-center gap-3 px-2 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-accent rounded-md transition-colors"
+                    >
+                        <action.icon className="w-4 h-4" />
+                        <span>{action.name}</span>
+                    </a>
+                ))}
+            </div>
+        </div>
+    )
+}
+
+function UsageStats() {
+    return (
+        <div className="px-2 py-4 border-t border-border">
+            <div className="bg-muted/50 rounded-lg p-3">
+                <div className="flex items-center justify-between mb-2">
+                    <span className="text-xs font-medium text-foreground">Free Plan</span>
+                    <span className="text-xs text-muted-foreground">3/5 meetings</span>
+                </div>
+                <div className="w-full bg-background rounded-full h-1.5">
+                    <div className="bg-primary h-1.5 rounded-full" style={{ width: '60%' }}></div>
+                </div>
+                <div className="flex items-center justify-between mt-2">
+                    <span className="text-xs text-muted-foreground">2 meetings left</span>
+                    <a href="/settings/billing" className="text-xs text-primary hover:underline">
+                        Upgrade
+                    </a>
+                </div>
+            </div>
+        </div>
+    )
+}
+                {
+                    title: "Notifications",
+                    url: "/settings/notifications",
+                },
+            ],
+        },
+    ],
+    quickActions: [
+        {
+            name: "New Chat",
+            url: "/chat",
+            icon: Plus,
+        },
+        {
+            name: "Upload Audio",
+            url: "/meetings/upload",
+            icon: Mic,
+        },
+        {
+            name: "Help & Support",
+            url: "/help",
+            icon: HelpCircle,
         },
     ],
 }
@@ -160,11 +239,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     return (
         <Sidebar collapsible="icon" {...props}>
             <SidebarHeader>
-                <TeamSwitcher teams={data.teams} />
+                <SidebarBrand />
             </SidebarHeader>
             <SidebarContent>
                 <NavMain items={data.navMain} />
-                <NavProjects projects={data.projects} />
+                <QuickActions actions={data.quickActions} />
+                <UsageStats />
             </SidebarContent>
             <SidebarFooter>
                 <NavUser user={data.user} />
