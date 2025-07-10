@@ -132,10 +132,6 @@ const data = {
                     title: "Billing",
                     url: "/settings/billing",
                 },
-                {
-                    title: "Notifications",
-                    url: "/settings/notifications",
-                },
             ],
         },
     ],
@@ -154,6 +150,44 @@ const data = {
             name: "Help & Support",
             url: "/help",
             icon: HelpCircle,
+        },
+    ],
+    teams: [
+        {
+            name: "Personal",
+            url: "#",
+            icon: Users,
+            items: [
+                {
+                    title: "Settings",
+                    url: "#",
+                },
+                {
+                    title: "Billing",
+                    url: "#",
+                },
+                {
+                    title: "Limits",
+                    url: "#",
+                },
+            ],
+        },
+    ],
+    projects: [
+        {
+            name: "Design Engineering",
+            url: "#",
+            icon: Frame,
+        },
+        {
+            name: "Sales & Marketing",
+            url: "#",
+            icon: PieChart,
+        },
+        {
+            name: "Travel",
+            url: "#",
+            icon: Map,
         },
     ],
 }
@@ -218,12 +252,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     return (
         <Sidebar collapsible="icon" {...props}>
             <SidebarHeader>
-                <SidebarBrand />
+                <TeamSwitcher teams={data.teams} />
             </SidebarHeader>
             <SidebarContent>
                 <NavMain items={data.navMain} />
-                <QuickActions actions={data.quickActions} />
-                <UsageStats />
+                <NavProjects projects={data.projects} />
             </SidebarContent>
             <SidebarFooter>
                 <NavUser user={data.user} />
