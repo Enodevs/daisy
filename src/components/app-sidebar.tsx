@@ -132,6 +132,10 @@ const data = {
                     title: "Billing",
                     url: "/settings/billing",
                 },
+                {
+                    title: "Notifications",
+                    url: "/settings/notifications",
+                },
             ],
         },
     ],
@@ -208,31 +212,6 @@ function UsageStats() {
             </div>
         </div>
     )
-}
-                {
-                    title: "Notifications",
-                    url: "/settings/notifications",
-                },
-            ],
-        },
-    ],
-    quickActions: [
-        {
-            name: "New Chat",
-            url: "/chat",
-            icon: Plus,
-        },
-        {
-            name: "Upload Audio",
-            url: "/meetings/upload",
-            icon: Mic,
-        },
-        {
-            name: "Help & Support",
-            url: "/help",
-            icon: HelpCircle,
-        },
-    ],
 }
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
