@@ -1,11 +1,12 @@
 import OpenAI from 'openai';
 
-if (!process.env.OPENAI_API_KEY) {
-  throw new Error('Missing OPENAI_API_KEY environment variable');
+if (!process.env.GROQ_API_KEY) {
+  throw new Error('Missing GROQ_API_KEY environment variable');
 }
 
 export const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
+  apiKey: process.env.GEMINI_API_KEY,
+  baseURL: "https://generativelanguage.googleapis.com/v1beta/openai"
 });
 
 export async function transcribeAudio(audioFile: File): Promise<string> {
@@ -15,7 +16,7 @@ export async function transcribeAudio(audioFile: File): Promise<string> {
       model: "whisper-1",
       language: "en",
     });
-    
+
     return transcription.text;
   } catch (error) {
     console.error('Transcription error:', error);
@@ -36,7 +37,7 @@ export async function generateSummary(transcription: string): Promise<{
 }> {
   try {
     const completion = await openai.chat.completions.create({
-      model: "gpt-4",
+      model: "gemma-3-4b-it",
       messages: [
         {
           role: "system",
@@ -71,12 +72,42 @@ Return the response as JSON with the following structure:
 
     const content = completion.choices[0]?.message?.content;
     if (!content) {
-      throw new Error('No response from OpenAI');
+      throw new Error('No response from Google Gemini');
     }
 
     return JSON.parse(content);
   } catch (error) {
     console.error('Summary generation error:', error);
     throw new Error('Failed to generate summary');
+  }
+}
+
+export async function processChat(userMessage: string) {
+  try {
+    const completion = await openai.chat.completions.create({
+      model: "gemma-3-4b-it",
+      messages: [
+        {
+          role: "system",
+          content: `You are a friendly AI assistant named DAISY that analyzes meetings, answers questions about them, and perform actions based on the meetings. Please always makesure to give
+                    brief, concise, and straight-forward answers.`
+        },
+        {
+          role: "user",
+          content: userMessage
+        }
+      ],
+      temperature: 0.3,
+    });
+
+    const content = completion.choices[0]?.message?.content;
+    if (!content) {
+      throw new Error('No response from Google Gemini');
+    }
+
+    return content;
+  } catch (error) {
+    console.error('Chat processing error:', error);
+    throw new Error('Failed to process chat');
   }
 }

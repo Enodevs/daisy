@@ -1,4 +1,3 @@
-import { AnimatedAIChat } from "~/components/ui/animated-ai-chat";
 import { AnimatedAIChatNew } from "~/components/ui/animated-ai-chat-new";
 import Link from "next/link";
 import { ArrowLeft, Bot } from "lucide-react";

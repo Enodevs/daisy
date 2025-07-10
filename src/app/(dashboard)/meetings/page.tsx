@@ -68,39 +68,7 @@ export default function MeetingsPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <div className="border-b border-border bg-card/50 backdrop-blur-sm">
-        <div className="max-w-7xl mx-auto px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <Link href="/">
-                <Button variant="ghost" size="sm">
-                  <ArrowLeft className="w-4 h-4 mr-2" />
-                  Back
-                </Button>
-              </Link>
-              <div>
-                <h1 className="text-2xl font-semibold text-foreground">Meetings</h1>
-                <p className="text-sm text-muted-foreground">Manage your meeting recordings and transcripts</p>
-              </div>
-            </div>
-            
-            <div className="flex items-center gap-3">
-              <Button variant="outline" size="sm">
-                <Mic className="w-4 h-4 mr-2" />
-                Record Live
-              </Button>
-              <Button size="sm">
-                <Upload className="w-4 h-4 mr-2" />
-                Upload Audio
-              </Button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Content */}
-      <div className="max-w-7xl mx-auto px-6 py-8">
+      <div className="max-w-7xl mx-auto pb-8 pt-3">
         {/* Upload Section */}
         <motion.div 
           className="bg-card rounded-xl border border-border p-8 mb-8"

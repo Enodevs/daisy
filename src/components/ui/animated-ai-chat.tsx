@@ -31,22 +31,22 @@ import * as React from "react"
 import ChatInputBox from "../ChatInputBox";
 
 interface Message {
-  id: string;
-  content: string;
-  sender: 'user' | 'ai';
-  timestamp: Date;
-  hasAttachment?: boolean;
-  attachmentType?: 'audio' | 'image' | 'document';
-  attachmentName?: string;
-  isRead?: boolean;
-  emoji?: string;
+    id: string;
+    content: string;
+    sender: 'user' | 'ai';
+    timestamp: Date;
+    hasAttachment?: boolean;
+    attachmentType?: 'audio' | 'image' | 'document';
+    attachmentName?: string;
+    isRead?: boolean;
+    emoji?: string;
 }
 
 interface Suggestion {
-  id: string;
-  text: string;
-  icon?: React.ReactNode;
-  category: 'greeting' | 'feature' | 'help' | 'action' | 'followup';
+    id: string;
+    text: string;
+    icon?: React.ReactNode;
+    category: 'greeting' | 'feature' | 'help' | 'action' | 'followup';
 }
 
 interface UseAutoResizeTextareaProps {
@@ -108,57 +108,57 @@ interface CommandSuggestion {
 }
 
 interface TextareaProps
-  extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
-  containerClassName?: string;
-  showRing?: boolean;
+    extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
+    containerClassName?: string;
+    showRing?: boolean;
 }
 
 const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
-  ({ className, containerClassName, showRing = true, ...props }, ref) => {
-    const [isFocused, setIsFocused] = React.useState(false);
-    
-    return (
-      <div className={cn(
-        "relative",
-        containerClassName
-      )}>
-        <textarea
-          className={cn(
-            "flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm",
-            "transition-all duration-200 ease-in-out",
-            "placeholder:text-muted-foreground",
-            "disabled:cursor-not-allowed disabled:opacity-50",
-            showRing ? "focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-0" : "",
-            className
-          )}
-          ref={ref}
-          onFocus={() => setIsFocused(true)}
-          onBlur={() => setIsFocused(false)}
-          {...props}
-        />
-        
-        {showRing && isFocused && (
-          <motion.span 
-            className="absolute inset-0 rounded-md pointer-events-none ring-2 ring-offset-0 ring-violet-500/30"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
-          />
-        )}
+    ({ className, containerClassName, showRing = true, ...props }, ref) => {
+        const [isFocused, setIsFocused] = React.useState(false);
 
-        {props.onChange && (
-          <div 
-            className="absolute bottom-2 right-2 opacity-0 w-2 h-2 bg-violet-500 rounded-full"
-            style={{
-              animation: 'none',
-            }}
-            id="textarea-ripple"
-          />
-        )}
-      </div>
-    )
-  }
+        return (
+            <div className={cn(
+                "relative",
+                containerClassName
+            )}>
+                <textarea
+                    className={cn(
+                        "flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm",
+                        "transition-all duration-200 ease-in-out",
+                        "placeholder:text-muted-foreground",
+                        "disabled:cursor-not-allowed disabled:opacity-50",
+                        showRing ? "focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-0" : "",
+                        className
+                    )}
+                    ref={ref}
+                    onFocus={() => setIsFocused(true)}
+                    onBlur={() => setIsFocused(false)}
+                    {...props}
+                />
+
+                {showRing && isFocused && (
+                    <motion.span
+                        className="absolute inset-0 rounded-md pointer-events-none ring-2 ring-offset-0 ring-violet-500/30"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.2 }}
+                    />
+                )}
+
+                {props.onChange && (
+                    <div
+                        className="absolute bottom-2 right-2 opacity-0 w-2 h-2 bg-violet-500 rounded-full"
+                        style={{
+                            animation: 'none',
+                        }}
+                        id="textarea-ripple"
+                    />
+                )}
+            </div>
+        )
+    }
 )
 Textarea.displayName = "Textarea"
 
@@ -167,162 +167,162 @@ const mockConversations: Message[] = [];
 
 // Intelligent suggestion system
 const baseSuggestions: Suggestion[] = [
-  { id: "1", text: "Hi Daisy! 👋", icon: <Bot className="w-4 h-4" />, category: "greeting" },
-  { id: "2", text: "Upload meeting audio", icon: <Mic className="w-4 h-4" />, category: "action" },
-  { id: "3", text: "How does transcription work?", icon: <FileText className="w-4 h-4" />, category: "feature" },
-  { id: "4", text: "Show me integrations", icon: <Zap className="w-4 h-4" />, category: "feature" },
-  { id: "5", text: "What are your pricing plans?", icon: <Calendar className="w-4 h-4" />, category: "help" },
+    { id: "1", text: "Hi Daisy! 👋", icon: <Bot className="w-4 h-4" />, category: "greeting" },
+    { id: "2", text: "Upload meeting audio", icon: <Mic className="w-4 h-4" />, category: "action" },
+    { id: "3", text: "How does transcription work?", icon: <FileText className="w-4 h-4" />, category: "feature" },
+    { id: "4", text: "Show me integrations", icon: <Zap className="w-4 h-4" />, category: "feature" },
+    { id: "5", text: "What are your pricing plans?", icon: <Calendar className="w-4 h-4" />, category: "help" },
 ];
 
 const contextualSuggestions: Record<string, Suggestion[]> = {
-  greeting: [
-    { id: "g1", text: "I need help with a meeting recording", category: "action" },
-    { id: "g2", text: "Tell me about your features", category: "feature" },
-    { id: "g3", text: "How accurate is your transcription?", category: "help" },
-  ],
-  transcription: [
-    { id: "t1", text: "Generate a summary please", category: "action" },
-    { id: "t2", text: "Extract action items", category: "action" },
-    { id: "t3", text: "What languages do you support?", category: "help" },
-  ],
-  integration: [
-    { id: "i1", text: "Set up Google Calendar sync", category: "action" },
-    { id: "i2", text: "Connect to Slack", category: "action" },
-    { id: "i3", text: "Show me Notion integration", category: "feature" },
-  ],
-  summary: [
-    { id: "s1", text: "Sync action items to calendar", category: "action" },
-    { id: "s2", text: "Send summary to team", category: "action" },
-    { id: "s3", text: "Export as PDF", category: "action" },
-  ],
-  followup: [
-    { id: "f1", text: "That's perfect, thank you! ✨", category: "followup" },
-    { id: "f2", text: "Can you help with another meeting?", category: "followup" },
-    { id: "f3", text: "How do I upgrade my plan?", category: "help" },
-  ]
+    greeting: [
+        { id: "g1", text: "I need help with a meeting recording", category: "action" },
+        { id: "g2", text: "Tell me about your features", category: "feature" },
+        { id: "g3", text: "How accurate is your transcription?", category: "help" },
+    ],
+    transcription: [
+        { id: "t1", text: "Generate a summary please", category: "action" },
+        { id: "t2", text: "Extract action items", category: "action" },
+        { id: "t3", text: "What languages do you support?", category: "help" },
+    ],
+    integration: [
+        { id: "i1", text: "Set up Google Calendar sync", category: "action" },
+        { id: "i2", text: "Connect to Slack", category: "action" },
+        { id: "i3", text: "Show me Notion integration", category: "feature" },
+    ],
+    summary: [
+        { id: "s1", text: "Sync action items to calendar", category: "action" },
+        { id: "s2", text: "Send summary to team", category: "action" },
+        { id: "s3", text: "Export as PDF", category: "action" },
+    ],
+    followup: [
+        { id: "f1", text: "That's perfect, thank you! ✨", category: "followup" },
+        { id: "f2", text: "Can you help with another meeting?", category: "followup" },
+        { id: "f3", text: "How do I upgrade my plan?", category: "help" },
+    ]
 };
 
 // Enhanced AI response system
 const getAIResponse = (userMessage: string, conversationHistory: Message[]): string => {
-  const message = userMessage.toLowerCase();
-  const isFirstMessage = conversationHistory.filter(m => m.sender === 'user').length === 1;
-  
-  // First-time greetings
-  if (isFirstMessage && (message.includes('hello') || message.includes('hi') || message.includes('hey'))) {
-    return "Hello! I'm Daisy, your AI meeting assistant. I can help you transcribe audio, generate summaries, extract action items, and sync with your favorite tools. What would you like to do today? ✨";
-  }
-  
-  // Audio/transcription related
-  if (message.includes('upload') || message.includes('audio') || message.includes('transcribe') || message.includes('recording')) {
-    return "I'd be happy to help you transcribe audio! You can upload audio files in MP3, WAV, or M4A format. I use OpenAI's Whisper model for 99% accurate transcription in 50+ languages. Just click the attachment button below to get started! 🎵";
-  }
-  
-  // Meeting summaries
-  if (message.includes('summary') || message.includes('summarize') || message.includes('meeting')) {
-    return "I excel at generating intelligent meeting summaries! I can identify:\n\n📋 Key discussion points\n🎯 Decisions made\n✅ Action items with assignees\n📅 Deadlines and follow-ups\n👥 Participant insights\n\nJust upload your meeting audio and I'll analyze it for you automatically!";
-  }
-  
-  // Action items
-  if (message.includes('action') || message.includes('task') || message.includes('todo')) {
-    return "I'm great at extracting action items from meetings! I can identify:\n\n✅ Who's responsible for each task\n📅 When it's due\n📝 Task descriptions and context\n🔄 Priority levels\n\nI can also automatically sync these to your calendar or project management tools. Would you like me to set up an integration?";
-  }
-  
-  // Integrations
-  if (message.includes('integration') || message.includes('calendar') || message.includes('slack') || message.includes('notion') || message.includes('sync')) {
-    return "I integrate seamlessly with all your favorite tools! 🔗\n\n📅 **Google Calendar** - Auto-sync action items as events\n💬 **Slack** - Send summaries to channels\n📝 **Notion** - Save transcripts as pages\n⚡ **Zapier** - Connect to 1000+ apps\n📧 **Email** - Send automated reports\n\nWhich integration would you like to set up first?";
-  }
-  
-  // Pricing
-  if (message.includes('price') || message.includes('cost') || message.includes('plan') || message.includes('upgrade')) {
-    return "Here are my flexible pricing options! 💰\n\n🆓 **Free Plan** - 5 meetings/month, basic features\n⭐ **Pro Plan** ($29/month) - Unlimited meetings, all integrations, real-time transcription\n🏢 **Enterprise** - Custom pricing, advanced security, dedicated support\n\nAll plans include AI summaries and action item extraction. Want to start with a free trial?";
-  }
-  
-  // Features overview
-  if (message.includes('feature') || message.includes('what can') || message.includes('help') || message.includes('capabilities')) {
-    return "Here's what I can do for you! ✨\n\n🎵 **AI Transcription** - 99% accuracy, 50+ languages\n📋 **Smart Summaries** - Key points, decisions, insights\n✅ **Action Items** - Auto-extract with assignees & deadlines\n🔗 **Integrations** - Sync with your favorite tools\n⚡ **Real-time** - Live transcription during meetings\n💬 **Chat Interface** - Easy access to all features\n\nWhat would you like to try first?";
-  }
-  
-  // Real-time features
-  if (message.includes('real-time') || message.includes('live') || message.includes('record')) {
-    return "Yes! I can transcribe meetings in real-time as they happen! 🔴\n\n⚡ Live captions during meetings\n📝 Automatic note-taking\n🎯 Real-time action item detection\n📊 Live participant insights\n💾 Auto-save transcripts\n\nJust click 'Record Live' and I'll provide live captions while automatically generating summaries when the meeting ends. Perfect for staying focused on the conversation!";
-  }
-  
-  // Languages
-  if (message.includes('language') || message.includes('spanish') || message.includes('french') || message.includes('multilingual')) {
-    return "I support transcription in 50+ languages! 🌍\n\n🇺🇸 English • 🇪🇸 Spanish • 🇫🇷 French • 🇩🇪 German\n🇮🇹 Italian • 🇵🇹 Portuguese • 🇳🇱 Dutch • 🇷🇺 Russian\n🇨🇳 Chinese • 🇯🇵 Japanese • 🇰🇷 Korean • And many more!\n\nThe AI automatically detects the language being spoken for seamless transcription. Mixed-language meetings are supported too!";
-  }
-  
-  // Security/Privacy
-  if (message.includes('secure') || message.includes('privacy') || message.includes('safe') || message.includes('data')) {
-    return "Your privacy and security are my top priorities! 🔒\n\n🛡️ Enterprise-grade encryption\n🗑️ Audio files deleted after processing\n✅ SOC 2 compliant\n🚫 Never used for AI training\n🔐 GDPR compliant\n🏢 On-premise options available\n\nYour meeting data stays private and secure. I only process what's needed to provide transcription and summaries.";
-  }
-  
-  // Positive responses
-  if (message.includes('thank') || message.includes('perfect') || message.includes('great') || message.includes('awesome')) {
-    return "You're very welcome! I'm here to make your meetings more productive. 😊\n\nIs there anything else I can help you with today? I can:\n\n🎵 Process another meeting recording\n🔗 Set up additional integrations\n📊 Show you advanced features\n💡 Answer any other questions\n\nJust let me know how I can assist!";
-  }
-  
-  // Setup/getting started
-  if (message.includes('setup') || message.includes('start') || message.includes('begin') || message.includes('get started')) {
-    return "Let's get you started! Here's the quickest way to begin: 🚀\n\n1️⃣ **Upload Audio** - Click the attachment button below\n2️⃣ **Choose Format** - MP3, WAV, M4A all work great\n3️⃣ **Wait for Magic** - I'll transcribe and analyze automatically\n4️⃣ **Review Results** - Get summaries, action items, and insights\n5️⃣ **Sync & Share** - Connect your tools for seamless workflow\n\nReady to upload your first meeting?";
-  }
-  
-  // Default responses with variety
-  const defaultResponses = [
-    "That's an interesting question! I'm designed to help with meeting transcription, summaries, and action items. Could you tell me more about what you're looking to accomplish? 🤔",
-    "I'd love to help you with that! As your AI meeting assistant, I specialize in transcribing audio, generating summaries, and managing action items. What specific task can I assist you with? ✨",
-    "Thanks for reaching out! I'm here to make your meetings more productive. Whether you need transcription, summaries, or help with action items, I'm ready to assist. What would you like to work on? 🎯",
-    "Great question! I'm Daisy, your AI meeting assistant. I can help transform your meeting recordings into actionable insights. What type of meeting support do you need today? 📋",
-  ];
-  
-  return defaultResponses[Math.floor(Math.random() * defaultResponses.length)];
+    const message = userMessage.toLowerCase();
+    const isFirstMessage = conversationHistory.filter(m => m.sender === 'user').length === 1;
+
+    // First-time greetings
+    if (isFirstMessage && (message.includes('hello') || message.includes('hi') || message.includes('hey'))) {
+        return "Hello! I'm Daisy, your AI meeting assistant. I can help you transcribe audio, generate summaries, extract action items, and sync with your favorite tools. What would you like to do today? ✨";
+    }
+
+    // Audio/transcription related
+    if (message.includes('upload') || message.includes('audio') || message.includes('transcribe') || message.includes('recording')) {
+        return "I'd be happy to help you transcribe audio! You can upload audio files in MP3, WAV, or M4A format. I use OpenAI's Whisper model for 99% accurate transcription in 50+ languages. Just click the attachment button below to get started! 🎵";
+    }
+
+    // Meeting summaries
+    if (message.includes('summary') || message.includes('summarize') || message.includes('meeting')) {
+        return "I excel at generating intelligent meeting summaries! I can identify:\n\n📋 Key discussion points\n🎯 Decisions made\n✅ Action items with assignees\n📅 Deadlines and follow-ups\n👥 Participant insights\n\nJust upload your meeting audio and I'll analyze it for you automatically!";
+    }
+
+    // Action items
+    if (message.includes('action') || message.includes('task') || message.includes('todo')) {
+        return "I'm great at extracting action items from meetings! I can identify:\n\n✅ Who's responsible for each task\n📅 When it's due\n📝 Task descriptions and context\n🔄 Priority levels\n\nI can also automatically sync these to your calendar or project management tools. Would you like me to set up an integration?";
+    }
+
+    // Integrations
+    if (message.includes('integration') || message.includes('calendar') || message.includes('slack') || message.includes('notion') || message.includes('sync')) {
+        return "I integrate seamlessly with all your favorite tools! 🔗\n\n📅 **Google Calendar** - Auto-sync action items as events\n💬 **Slack** - Send summaries to channels\n📝 **Notion** - Save transcripts as pages\n⚡ **Zapier** - Connect to 1000+ apps\n📧 **Email** - Send automated reports\n\nWhich integration would you like to set up first?";
+    }
+
+    // Pricing
+    if (message.includes('price') || message.includes('cost') || message.includes('plan') || message.includes('upgrade')) {
+        return "Here are my flexible pricing options! 💰\n\n🆓 **Free Plan** - 5 meetings/month, basic features\n⭐ **Pro Plan** ($29/month) - Unlimited meetings, all integrations, real-time transcription\n🏢 **Enterprise** - Custom pricing, advanced security, dedicated support\n\nAll plans include AI summaries and action item extraction. Want to start with a free trial?";
+    }
+
+    // Features overview
+    if (message.includes('feature') || message.includes('what can') || message.includes('help') || message.includes('capabilities')) {
+        return "Here's what I can do for you! ✨\n\n🎵 **AI Transcription** - 99% accuracy, 50+ languages\n📋 **Smart Summaries** - Key points, decisions, insights\n✅ **Action Items** - Auto-extract with assignees & deadlines\n🔗 **Integrations** - Sync with your favorite tools\n⚡ **Real-time** - Live transcription during meetings\n💬 **Chat Interface** - Easy access to all features\n\nWhat would you like to try first?";
+    }
+
+    // Real-time features
+    if (message.includes('real-time') || message.includes('live') || message.includes('record')) {
+        return "Yes! I can transcribe meetings in real-time as they happen! 🔴\n\n⚡ Live captions during meetings\n📝 Automatic note-taking\n🎯 Real-time action item detection\n📊 Live participant insights\n💾 Auto-save transcripts\n\nJust click 'Record Live' and I'll provide live captions while automatically generating summaries when the meeting ends. Perfect for staying focused on the conversation!";
+    }
+
+    // Languages
+    if (message.includes('language') || message.includes('spanish') || message.includes('french') || message.includes('multilingual')) {
+        return "I support transcription in 50+ languages! 🌍\n\n🇺🇸 English • 🇪🇸 Spanish • 🇫🇷 French • 🇩🇪 German\n🇮🇹 Italian • 🇵🇹 Portuguese • 🇳🇱 Dutch • 🇷🇺 Russian\n🇨🇳 Chinese • 🇯🇵 Japanese • 🇰🇷 Korean • And many more!\n\nThe AI automatically detects the language being spoken for seamless transcription. Mixed-language meetings are supported too!";
+    }
+
+    // Security/Privacy
+    if (message.includes('secure') || message.includes('privacy') || message.includes('safe') || message.includes('data')) {
+        return "Your privacy and security are my top priorities! 🔒\n\n🛡️ Enterprise-grade encryption\n🗑️ Audio files deleted after processing\n✅ SOC 2 compliant\n🚫 Never used for AI training\n🔐 GDPR compliant\n🏢 On-premise options available\n\nYour meeting data stays private and secure. I only process what's needed to provide transcription and summaries.";
+    }
+
+    // Positive responses
+    if (message.includes('thank') || message.includes('perfect') || message.includes('great') || message.includes('awesome')) {
+        return "You're very welcome! I'm here to make your meetings more productive. 😊\n\nIs there anything else I can help you with today? I can:\n\n🎵 Process another meeting recording\n🔗 Set up additional integrations\n📊 Show you advanced features\n💡 Answer any other questions\n\nJust let me know how I can assist!";
+    }
+
+    // Setup/getting started
+    if (message.includes('setup') || message.includes('start') || message.includes('begin') || message.includes('get started')) {
+        return "Let's get you started! Here's the quickest way to begin: 🚀\n\n1️⃣ **Upload Audio** - Click the attachment button below\n2️⃣ **Choose Format** - MP3, WAV, M4A all work great\n3️⃣ **Wait for Magic** - I'll transcribe and analyze automatically\n4️⃣ **Review Results** - Get summaries, action items, and insights\n5️⃣ **Sync & Share** - Connect your tools for seamless workflow\n\nReady to upload your first meeting?";
+    }
+
+    // Default responses with variety
+    const defaultResponses = [
+        "That's an interesting question! I'm designed to help with meeting transcription, summaries, and action items. Could you tell me more about what you're looking to accomplish? 🤔",
+        "I'd love to help you with that! As your AI meeting assistant, I specialize in transcribing audio, generating summaries, and managing action items. What specific task can I assist you with? ✨",
+        "Thanks for reaching out! I'm here to make your meetings more productive. Whether you need transcription, summaries, or help with action items, I'm ready to assist. What would you like to work on? 🎯",
+        "Great question! I'm Daisy, your AI meeting assistant. I can help transform your meeting recordings into actionable insights. What type of meeting support do you need today? 📋",
+    ];
+
+    return defaultResponses[Math.floor(Math.random() * defaultResponses.length)];
 };
 
 // Get contextual suggestions based on conversation
 const getContextualSuggestions = (messages: Message[], currentInput: string): Suggestion[] => {
-  const lastAIMessage = messages.filter(m => m.sender === 'ai').pop();
-  const lastUserMessage = messages.filter(m => m.sender === 'user').pop();
-  
-  // If user is typing, filter suggestions based on input
-  if (currentInput.length > 0) {
-    const allSuggestions = [
-      ...baseSuggestions,
-      ...Object.values(contextualSuggestions).flat()
-    ];
-    
-    return allSuggestions
-      .filter(s => s.text.toLowerCase().includes(currentInput.toLowerCase()))
-      .slice(0, 3);
-  }
-  
-  // No messages yet - show greeting suggestions
-  if (messages.length === 0) {
-    return baseSuggestions.slice(0, 4);
-  }
-  
-  // Context-based suggestions
-  if (lastAIMessage?.content.includes('transcrib')) {
-    return contextualSuggestions.transcription;
-  }
-  
-  if (lastAIMessage?.content.includes('integrat') || lastAIMessage?.content.includes('sync')) {
-    return contextualSuggestions.integration;
-  }
-  
-  if (lastAIMessage?.content.includes('summary') || lastAIMessage?.content.includes('action item')) {
-    return contextualSuggestions.summary;
-  }
-  
-  if (lastAIMessage?.content.includes('welcome') || lastAIMessage?.content.includes('thank')) {
-    return contextualSuggestions.followup;
-  }
-  
-  if (lastUserMessage?.content.toLowerCase().includes('hi') || lastUserMessage?.content.toLowerCase().includes('hello')) {
-    return contextualSuggestions.greeting;
-  }
-  
-  // Default suggestions
-  return baseSuggestions.slice(1, 5);
+    const lastAIMessage = messages.filter(m => m.sender === 'ai').pop();
+    const lastUserMessage = messages.filter(m => m.sender === 'user').pop();
+
+    // If user is typing, filter suggestions based on input
+    if (currentInput.length > 0) {
+        const allSuggestions = [
+            ...baseSuggestions,
+            ...Object.values(contextualSuggestions).flat()
+        ];
+
+        return allSuggestions
+            .filter(s => s.text.toLowerCase().includes(currentInput.toLowerCase()))
+            .slice(0, 3);
+    }
+
+    // No messages yet - show greeting suggestions
+    if (messages.length === 0) {
+        return baseSuggestions.slice(0, 4);
+    }
+
+    // Context-based suggestions
+    if (lastAIMessage?.content.includes('transcrib')) {
+        return contextualSuggestions.transcription;
+    }
+
+    if (lastAIMessage?.content.includes('integrat') || lastAIMessage?.content.includes('sync')) {
+        return contextualSuggestions.integration;
+    }
+
+    if (lastAIMessage?.content.includes('summary') || lastAIMessage?.content.includes('action item')) {
+        return contextualSuggestions.summary;
+    }
+
+    if (lastAIMessage?.content.includes('welcome') || lastAIMessage?.content.includes('thank')) {
+        return contextualSuggestions.followup;
+    }
+
+    if (lastUserMessage?.content.toLowerCase().includes('hi') || lastUserMessage?.content.toLowerCase().includes('hello')) {
+        return contextualSuggestions.greeting;
+    }
+
+    // Default suggestions
+    return baseSuggestions.slice(1, 5);
 };
 
 export function AnimatedAIChat() {
@@ -345,29 +345,29 @@ export function AnimatedAIChat() {
     });
 
     const commandSuggestions: CommandSuggestion[] = [
-        { 
-            icon: <ImageIcon className="w-4 h-4" />, 
-            label: "Clone UI", 
-            description: "Generate a UI from a screenshot", 
-            prefix: "/clone" 
+        {
+            icon: <ImageIcon className="w-4 h-4" />,
+            label: "Clone UI",
+            description: "Generate a UI from a screenshot",
+            prefix: "/clone"
         },
-        { 
-            icon: <Figma className="w-4 h-4" />, 
-            label: "Import Figma", 
-            description: "Import a design from Figma", 
-            prefix: "/figma" 
+        {
+            icon: <Figma className="w-4 h-4" />,
+            label: "Import Figma",
+            description: "Import a design from Figma",
+            prefix: "/figma"
         },
-        { 
-            icon: <MonitorIcon className="w-4 h-4" />, 
-            label: "Create Page", 
-            description: "Generate a new web page", 
-            prefix: "/page" 
+        {
+            icon: <MonitorIcon className="w-4 h-4" />,
+            label: "Create Page",
+            description: "Generate a new web page",
+            prefix: "/page"
         },
-        { 
-            icon: <Sparkles className="w-4 h-4" />, 
-            label: "Improve", 
-            description: "Improve existing UI design", 
-            prefix: "/improve" 
+        {
+            icon: <Sparkles className="w-4 h-4" />,
+            label: "Improve",
+            description: "Improve existing UI design",
+            prefix: "/improve"
         },
     ];
 
@@ -388,11 +388,11 @@ export function AnimatedAIChat() {
     useEffect(() => {
         if (value.startsWith('/') && !value.includes(' ')) {
             setShowCommandPalette(true);
-            
+
             const matchingSuggestionIndex = commandSuggestions.findIndex(
                 (cmd) => cmd.prefix.startsWith(value)
             );
-            
+
             if (matchingSuggestionIndex >= 0) {
                 setActiveSuggestion(matchingSuggestionIndex);
             } else {
@@ -418,9 +418,9 @@ export function AnimatedAIChat() {
         const handleClickOutside = (event: MouseEvent) => {
             const target = event.target as Node;
             const commandButton = document.querySelector('[data-command-button]');
-            
-            if (commandPaletteRef.current && 
-                !commandPaletteRef.current.contains(target) && 
+
+            if (commandPaletteRef.current &&
+                !commandPaletteRef.current.contains(target) &&
                 !commandButton?.contains(target)) {
                 setShowCommandPalette(false);
             }
@@ -436,12 +436,12 @@ export function AnimatedAIChat() {
         if (showCommandPalette) {
             if (e.key === 'ArrowDown') {
                 e.preventDefault();
-                setActiveSuggestion(prev => 
+                setActiveSuggestion(prev =>
                     prev < commandSuggestions.length - 1 ? prev + 1 : 0
                 );
             } else if (e.key === 'ArrowUp') {
                 e.preventDefault();
-                setActiveSuggestion(prev => 
+                setActiveSuggestion(prev =>
                     prev > 0 ? prev - 1 : commandSuggestions.length - 1
                 );
             } else if (e.key === 'Tab' || e.key === 'Enter') {
@@ -450,7 +450,7 @@ export function AnimatedAIChat() {
                     const selectedCommand = commandSuggestions[activeSuggestion];
                     setValue(selectedCommand.prefix + ' ');
                     setShowCommandPalette(false);
-                    
+
                     setRecentCommand(selectedCommand.label);
                     setTimeout(() => setRecentCommand(null), 3500);
                 }
@@ -484,7 +484,7 @@ export function AnimatedAIChat() {
 
         // Simulate AI thinking time
         const thinkingTime = 1500 + Math.random() * 1000; // 1.5-2.5 seconds
-        
+
         setTimeout(() => {
             const aiResponse: Message = {
                 id: (Date.now() + 1).toString(),
@@ -493,7 +493,7 @@ export function AnimatedAIChat() {
                 timestamp: new Date(),
                 isRead: false
             };
-            
+
             setMessages(prev => [...prev, aiResponse]);
             setIsTyping(false);
         }, thinkingTime);
@@ -517,12 +517,12 @@ export function AnimatedAIChat() {
     const removeAttachment = (index: number) => {
         setAttachments(prev => prev.filter((_, i) => i !== index));
     };
-    
+
     const selectCommandSuggestion = (index: number) => {
         const selectedCommand = commandSuggestions[index];
         setValue(selectedCommand.prefix + ' ');
         setShowCommandPalette(false);
-        
+
         setRecentCommand(selectedCommand.label);
         setTimeout(() => setRecentCommand(null), 2000);
     };
@@ -534,7 +534,7 @@ export function AnimatedAIChat() {
     const formatDate = (date: Date) => {
         const now = new Date();
         const diffInHours = (now.getTime() - date.getTime()) / (1000 * 60 * 60);
-        
+
         if (diffInHours < 1) {
             return 'Just now';
         } else if (diffInHours < 24) {
@@ -547,6 +547,30 @@ export function AnimatedAIChat() {
     // Always show chat interface since we have mock data
     return (
         <div className="flex flex-col h-full bg-background">
+
+            {/* Typing Indicator */}
+            <AnimatePresence>
+                {isTyping && (
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        transition={{ duration: 0.3 }}
+                        className="flex gap-3 justify-start"
+                    >
+                        <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center flex-shrink-0">
+                            <Bot className="w-4 h-4 text-primary-foreground" />
+                        </div>
+                        <div className="bg-muted text-foreground px-4 py-3 rounded-2xl rounded-bl-md">
+                            <div className="flex items-center gap-1">
+                                <span className="text-sm text-muted-foreground">Daisy is typing</span>
+                                <TypingDots />
+                            </div>
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
             {/* Messages Area */}
             <div className="flex-1 overflow-y-auto p-6 space-y-6">
                 <AnimatePresence>
@@ -566,15 +590,15 @@ export function AnimatedAIChat() {
                                     <Bot className="w-4 h-4 text-primary-foreground" />
                                 </div>
                             )}
-                            
+
                             <div className={cn(
                                 "max-w-[70%] space-y-1",
                                 message.sender === 'user' ? "items-end" : "items-start"
                             )}>
                                 <div className={cn(
                                     "px-4 py-3 rounded-2xl relative",
-                                    message.sender === 'user' 
-                                        ? "bg-primary text-primary-foreground rounded-br-md" 
+                                    message.sender === 'user'
+                                        ? "bg-primary text-primary-foreground rounded-br-md"
                                         : "bg-muted text-foreground rounded-bl-md"
                                 )}>
                                     {/* Attachment display */}
@@ -593,11 +617,11 @@ export function AnimatedAIChat() {
                                             </div>
                                         </div>
                                     )}
-                                    
+
                                     <p className="text-sm leading-relaxed whitespace-pre-wrap">
                                         {message.content}
                                     </p>
-                                    
+
                                     {/* Emoji reaction */}
                                     {message.emoji && (
                                         <span className="absolute -bottom-2 -right-2 text-lg bg-background rounded-full p-1 shadow-sm border border-border">
@@ -605,7 +629,7 @@ export function AnimatedAIChat() {
                                         </span>
                                     )}
                                 </div>
-                                
+
                                 <div className="flex items-center gap-2 px-2">
                                     <p className="text-xs text-muted-foreground">
                                         {formatDate(message.timestamp)}
@@ -629,29 +653,6 @@ export function AnimatedAIChat() {
                             )}
                         </motion.div>
                     ))}
-                </AnimatePresence>
-
-                {/* Typing Indicator */}
-                <AnimatePresence>
-                    {isTyping && (
-                        <motion.div
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: -10 }}
-                            transition={{ duration: 0.3 }}
-                            className="flex gap-3 justify-start"
-                        >
-                            <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center flex-shrink-0">
-                                <Bot className="w-4 h-4 text-primary-foreground" />
-                            </div>
-                            <div className="bg-muted text-foreground px-4 py-3 rounded-2xl rounded-bl-md">
-                                <div className="flex items-center gap-1">
-                                    <span className="text-sm text-muted-foreground">Daisy is typing</span>
-                                    <TypingDots />
-                                </div>
-                            </div>
-                        </motion.div>
-                    )}
                 </AnimatePresence>
 
                 <div ref={messagesEndRef} />
@@ -706,7 +707,7 @@ function TypingDots() {
                     key={dot}
                     className="w-1.5 h-1.5 bg-muted-foreground rounded-full"
                     initial={{ opacity: 0.3 }}
-                    animate={{ 
+                    animate={{
                         opacity: [0.3, 1, 0.3],
                         scale: [0.8, 1.2, 0.8]
                     }}

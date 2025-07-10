@@ -24,6 +24,9 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import * as React from "react"
+import type { Message } from "~/types/message";
+
+import { processChat } from "~/lib/openai";
 
 interface UseAutoResizeTextareaProps {
     minHeight: number;
@@ -84,63 +87,64 @@ interface CommandSuggestion {
 }
 
 interface TextareaProps
-  extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
-  containerClassName?: string;
-  showRing?: boolean;
+    extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
+    containerClassName?: string;
+    showRing?: boolean;
 }
 
 const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
-  ({ className, containerClassName, showRing = true, ...props }, ref) => {
-    const [isFocused, setIsFocused] = React.useState(false);
-    
-    return (
-      <div className={cn(
-        "relative",
-        containerClassName
-      )}>
-        <textarea
-          className={cn(
-            "flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm",
-            "transition-all duration-200 ease-in-out",
-            "placeholder:text-muted-foreground",
-            "disabled:cursor-not-allowed disabled:opacity-50",
-            showRing ? "focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-0" : "",
-            className
-          )}
-          ref={ref}
-          onFocus={() => setIsFocused(true)}
-          onBlur={() => setIsFocused(false)}
-          {...props}
-        />
-        
-        {showRing && isFocused && (
-          <motion.span 
-            className="absolute inset-0 rounded-md pointer-events-none ring-2 ring-offset-0 ring-primary/30"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
-          />
-        )}
+    ({ className, containerClassName, showRing = true, ...props }, ref) => {
+        const [isFocused, setIsFocused] = React.useState(false);
 
-        {props.onChange && (
-          <div 
-            className="absolute bottom-2 right-2 opacity-0 w-2 h-2 bg-primary rounded-full"
-            style={{
-              animation: 'none',
-            }}
-            id="textarea-ripple"
-          />
-        )}
-      </div>
-    )
-  }
+        return (
+            <div className={cn(
+                "relative",
+                containerClassName
+            )}>
+                <textarea
+                    className={cn(
+                        "flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm",
+                        "transition-all duration-200 ease-in-out",
+                        "placeholder:text-muted-foreground",
+                        "disabled:cursor-not-allowed disabled:opacity-50",
+                        showRing ? "focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-0" : "",
+                        className
+                    )}
+                    ref={ref}
+                    onFocus={() => setIsFocused(true)}
+                    onBlur={() => setIsFocused(false)}
+                    {...props}
+                />
+
+                {showRing && isFocused && (
+                    <motion.span
+                        className="absolute inset-0 rounded-md pointer-events-none ring-2 ring-offset-0 ring-primary/30"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.2 }}
+                    />
+                )}
+
+                {props.onChange && (
+                    <div
+                        className="absolute bottom-2 right-2 opacity-0 w-2 h-2 bg-primary rounded-full"
+                        style={{
+                            animation: 'none',
+                        }}
+                        id="textarea-ripple"
+                    />
+                )}
+            </div>
+        )
+    }
 )
 Textarea.displayName = "Textarea"
 
 export function AnimatedAIChatNew() {
     const [value, setValue] = useState("");
     const [attachments, setAttachments] = useState<string[]>([]);
+    const [messages, setMessages] = useState<Message[]>([]);
     const [isTyping, setIsTyping] = useState(false);
     const [isPending, startTransition] = useTransition();
     const [activeSuggestion, setActiveSuggestion] = useState<number>(-1);
@@ -155,40 +159,40 @@ export function AnimatedAIChatNew() {
     const commandPaletteRef = useRef<HTMLDivElement>(null);
 
     const commandSuggestions: CommandSuggestion[] = [
-        { 
-            icon: <Mic className="w-4 h-4" />, 
-            label: "Upload Audio", 
-            description: "Upload meeting recording for transcription", 
-            prefix: "/upload" 
+        {
+            icon: <Mic className="w-4 h-4" />,
+            label: "Upload Audio",
+            description: "Upload meeting recording for transcription",
+            prefix: "/upload"
         },
-        { 
-            icon: <FileText className="w-4 h-4" />, 
-            label: "Transcribe", 
-            description: "Start transcription process", 
-            prefix: "/transcribe" 
+        {
+            icon: <FileText className="w-4 h-4" />,
+            label: "Transcribe",
+            description: "Start transcription process",
+            prefix: "/transcribe"
         },
-        { 
-            icon: <Calendar className="w-4 h-4" />, 
-            label: "Schedule", 
-            description: "Schedule a meeting", 
-            prefix: "/schedule" 
+        {
+            icon: <Calendar className="w-4 h-4" />,
+            label: "Schedule",
+            description: "Schedule a meeting",
+            prefix: "/schedule"
         },
-        { 
-            icon: <Zap className="w-4 h-4" />, 
-            label: "Integrations", 
-            description: "View available integrations", 
-            prefix: "/integrations" 
+        {
+            icon: <Zap className="w-4 h-4" />,
+            label: "Integrations",
+            description: "View available integrations",
+            prefix: "/integrations"
         },
     ];
 
     useEffect(() => {
         if (value.startsWith('/') && !value.includes(' ')) {
             setShowCommandPalette(true);
-            
+
             const matchingSuggestionIndex = commandSuggestions.findIndex(
                 (cmd) => cmd.prefix.startsWith(value)
             );
-            
+
             if (matchingSuggestionIndex >= 0) {
                 setActiveSuggestion(matchingSuggestionIndex);
             } else {
@@ -214,9 +218,9 @@ export function AnimatedAIChatNew() {
         const handleClickOutside = (event: MouseEvent) => {
             const target = event.target as Node;
             const commandButton = document.querySelector('[data-command-button]');
-            
-            if (commandPaletteRef.current && 
-                !commandPaletteRef.current.contains(target) && 
+
+            if (commandPaletteRef.current &&
+                !commandPaletteRef.current.contains(target) &&
                 !commandButton?.contains(target)) {
                 setShowCommandPalette(false);
             }
@@ -232,12 +236,12 @@ export function AnimatedAIChatNew() {
         if (showCommandPalette) {
             if (e.key === 'ArrowDown') {
                 e.preventDefault();
-                setActiveSuggestion(prev => 
+                setActiveSuggestion(prev =>
                     prev < commandSuggestions.length - 1 ? prev + 1 : 0
                 );
             } else if (e.key === 'ArrowUp') {
                 e.preventDefault();
-                setActiveSuggestion(prev => 
+                setActiveSuggestion(prev =>
                     prev > 0 ? prev - 1 : commandSuggestions.length - 1
                 );
             } else if (e.key === 'Tab' || e.key === 'Enter') {
@@ -246,7 +250,7 @@ export function AnimatedAIChatNew() {
                     const selectedCommand = commandSuggestions[activeSuggestion];
                     setValue(selectedCommand.prefix + ' ');
                     setShowCommandPalette(false);
-                    
+
                     setRecentCommand(selectedCommand.label);
                     setTimeout(() => setRecentCommand(null), 3500);
                 }
@@ -264,13 +268,31 @@ export function AnimatedAIChatNew() {
 
     const handleSendMessage = () => {
         if (value.trim()) {
-            startTransition(() => {
-                setIsTyping(true);
-                setTimeout(() => {
-                    setIsTyping(false);
-                    setValue("");
-                    adjustHeight(true);
-                }, 3000);
+            const userMessage: Message = {
+                id: Date.now().toString(),
+                content: value.trim(),
+                sender: 'user',
+                timestamp: new Date(),
+                isRead: true
+            };
+            setMessages(prev => [...prev, userMessage]);
+            setValue("");
+            adjustHeight(true);
+            setIsTyping(true);
+            // Simulate AI response
+            setTimeout(() => {
+                const aiMessage: Message = {
+                    id: (Date.now() + 1).toString(),
+                    content: "This is a sample AI response!", // Replace with actual AI response logic
+                    sender: 'ai',
+                    timestamp: new Date(),
+                    isRead: false
+                };
+
+                setMessages(prev => [...prev, aiMessage]);
+                setIsTyping(false);
+                setValue("");
+                adjustHeight(true);
             });
         }
     };
@@ -283,12 +305,12 @@ export function AnimatedAIChatNew() {
     const removeAttachment = (index: number) => {
         setAttachments(prev => prev.filter((_, i) => i !== index));
     };
-    
+
     const selectCommandSuggestion = (index: number) => {
         const selectedCommand = commandSuggestions[index];
         setValue(selectedCommand.prefix + ' ');
         setShowCommandPalette(false);
-        
+
         setRecentCommand(selectedCommand.label);
         setTimeout(() => setRecentCommand(null), 2000);
     };
@@ -301,7 +323,7 @@ export function AnimatedAIChatNew() {
                 <div className="absolute top-1/4 right-1/3 w-64 h-64 bg-primary/5 rounded-full mix-blend-normal filter blur-[96px] animate-pulse delay-1000" />
             </div>
             <div className="w-full max-w-2xl mx-auto relative">
-                <motion.div 
+                <motion.div
                     className="relative z-10 space-y-12"
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -317,14 +339,14 @@ export function AnimatedAIChatNew() {
                             <h1 className="text-3xl font-medium tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-foreground to-muted-foreground pb-1">
                                 How can I help today?
                             </h1>
-                            <motion.div 
+                            <motion.div
                                 className="h-px bg-gradient-to-r from-transparent via-border to-transparent"
                                 initial={{ width: 0, opacity: 0 }}
                                 animate={{ width: "100%", opacity: 1 }}
                                 transition={{ delay: 0.5, duration: 0.8 }}
                             />
                         </motion.div>
-                        <motion.p 
+                        <motion.p
                             className="text-sm text-muted-foreground"
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
@@ -334,7 +356,7 @@ export function AnimatedAIChatNew() {
                         </motion.p>
                     </div>
 
-                    <motion.div 
+                    <motion.div
                         className="relative backdrop-blur-2xl bg-card/50 rounded-2xl border border-border shadow-2xl"
                         initial={{ scale: 0.98 }}
                         animate={{ scale: 1 }}
@@ -342,7 +364,7 @@ export function AnimatedAIChatNew() {
                     >
                         <AnimatePresence>
                             {showCommandPalette && (
-                                <motion.div 
+                                <motion.div
                                     ref={commandPaletteRef}
                                     className="absolute left-4 right-4 bottom-full mb-2 backdrop-blur-xl bg-popover/95 rounded-lg z-50 shadow-lg border border-border overflow-hidden"
                                     initial={{ opacity: 0, y: 5 }}
@@ -356,8 +378,8 @@ export function AnimatedAIChatNew() {
                                                 key={suggestion.prefix}
                                                 className={cn(
                                                     "flex items-center gap-2 px-3 py-2 text-xs transition-colors cursor-pointer",
-                                                    activeSuggestion === index 
-                                                        ? "bg-accent text-accent-foreground" 
+                                                    activeSuggestion === index
+                                                        ? "bg-accent text-accent-foreground"
                                                         : "text-muted-foreground hover:bg-accent/50"
                                                 )}
                                                 onClick={() => selectCommandSuggestion(index)}
@@ -411,7 +433,7 @@ export function AnimatedAIChatNew() {
 
                         <AnimatePresence>
                             {attachments.length > 0 && (
-                                <motion.div 
+                                <motion.div
                                     className="px-4 pb-3 flex gap-2 flex-wrap"
                                     initial={{ opacity: 0, height: 0 }}
                                     animate={{ opacity: 1, height: "auto" }}
@@ -427,7 +449,7 @@ export function AnimatedAIChatNew() {
                                         >
                                             <Mic className="w-3 h-3" />
                                             <span>{file}</span>
-                                            <button 
+                                            <button
                                                 onClick={() => removeAttachment(index)}
                                                 className="text-muted-foreground hover:text-foreground transition-colors"
                                             >
@@ -445,13 +467,9 @@ export function AnimatedAIChatNew() {
                                     type="button"
                                     onClick={handleAttachFile}
                                     whileTap={{ scale: 0.94 }}
-                                    className="p-2 text-muted-foreground hover:text-foreground rounded-lg transition-colors relative group"
+                                    className="p-2 hover:text-foreground rounded-lg transition-colors relative group cursor-pointer bg-accent"
                                 >
                                     <Paperclip className="w-4 h-4" />
-                                    <motion.span
-                                        className="absolute inset-0 bg-accent rounded-lg opacity-0 group-hover:opacity-100 transition-opacity"
-                                        layoutId="button-highlight"
-                                    />
                                 </motion.button>
                                 <motion.button
                                     type="button"
@@ -462,18 +480,14 @@ export function AnimatedAIChatNew() {
                                     }}
                                     whileTap={{ scale: 0.94 }}
                                     className={cn(
-                                        "p-2 text-muted-foreground hover:text-foreground rounded-lg transition-colors relative group",
+                                        "p-2 hover:text-foreground rounded-lg transition-colors relative group cursor-pointer bg-accent",
                                         showCommandPalette && "bg-accent text-accent-foreground"
                                     )}
                                 >
                                     <Command className="w-4 h-4" />
-                                    <motion.span
-                                        className="absolute inset-0 bg-accent rounded-lg opacity-0 group-hover:opacity-100 transition-opacity"
-                                        layoutId="button-highlight"
-                                    />
                                 </motion.button>
                             </div>
-                            
+
                             <motion.button
                                 type="button"
                                 onClick={handleSendMessage}
@@ -528,29 +542,8 @@ export function AnimatedAIChatNew() {
                 </motion.div>
             </div>
 
-            <AnimatePresence>
-                {isTyping && (
-                    <motion.div 
-                        className="fixed bottom-8 left-1/2 transform -translate-x-1/2 backdrop-blur-2xl bg-card/80 rounded-full px-4 py-2 shadow-lg border border-border"
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: 20 }}
-                    >
-                        <div className="flex items-center gap-3">
-                            <div className="w-8 h-7 rounded-full bg-primary/10 flex items-center justify-center text-center">
-                                <span className="text-xs font-medium text-primary mb-0.5">🌸</span>
-                            </div>
-                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                                <span>Daisy is thinking</span>
-                                <TypingDots />
-                            </div>
-                        </div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
-
             {inputFocused && (
-                <motion.div 
+                <motion.div
                     className="fixed w-[50rem] h-[50rem] rounded-full pointer-events-none z-0 opacity-[0.02] bg-gradient-to-r from-primary via-primary/50 to-primary blur-[96px]"
                     animate={{
                         x: mousePosition.x - 400,
@@ -576,7 +569,7 @@ function TypingDots() {
                     key={dot}
                     className="w-1.5 h-1.5 bg-primary rounded-full mx-0.5"
                     initial={{ opacity: 0.3 }}
-                    animate={{ 
+                    animate={{
                         opacity: [0.3, 0.9, 0.3],
                         scale: [0.85, 1.1, 0.85]
                     }}
@@ -602,7 +595,7 @@ interface ActionButtonProps {
 
 function ActionButton({ icon, label }: ActionButtonProps) {
     const [isHovered, setIsHovered] = useState(false);
-    
+
     return (
         <motion.button
             type="button"
@@ -616,10 +609,10 @@ function ActionButton({ icon, label }: ActionButtonProps) {
                 {icon}
                 <span className="text-xs relative z-10">{label}</span>
             </div>
-            
+
             <AnimatePresence>
                 {isHovered && (
-                    <motion.div 
+                    <motion.div
                         className="absolute inset-0 bg-gradient-to-r from-primary/10 to-primary/5"
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
@@ -628,8 +621,8 @@ function ActionButton({ icon, label }: ActionButtonProps) {
                     />
                 )}
             </AnimatePresence>
-            
-            <motion.span 
+
+            <motion.span
                 className="absolute bottom-0 left-0 w-full h-0.5 bg-gradient-to-r from-primary to-primary/50"
                 initial={{ width: 0 }}
                 whileHover={{ width: "100%" }}

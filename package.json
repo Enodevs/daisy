@@ -14,23 +14,21 @@
   "dependencies": {
     "@prisma/client": "^5.22.0",
     "@radix-ui/react-accordion": "^1.2.3",
-<<<<<<< HEAD
+    "@radix-ui/react-avatar": "^1.1.10",
+    "@radix-ui/react-collapsible": "^1.1.11",
     "@radix-ui/react-dialog": "^1.1.14",
+    "@radix-ui/react-dropdown-menu": "^2.1.15",
+    "@radix-ui/react-label": "^2.1.7",
+    "@radix-ui/react-separator": "^1.1.7",
     "@radix-ui/react-slot": "^1.2.3",
+    "@radix-ui/react-switch": "^1.2.5",
     "@radix-ui/react-tooltip": "^1.2.7",
-=======
-    "@radix-ui/react-slot": "^1.2.3",
->>>>>>> d98097319005b6d79d09d17f1237daaeda170b2e
     "better-auth": "^1.0.1",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
     "framer-motion": "^12.23.0",
-<<<<<<< HEAD
-    "lucide-react": "^0.454.0",
-=======
     "lucide-react": "^0.525.0",
->>>>>>> d98097319005b6d79d09d17f1237daaeda170b2e
     "next": "15.3.4",
     "next-themes": "^0.4.4",
     "openai": "^4.67.3",
