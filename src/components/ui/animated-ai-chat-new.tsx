@@ -25,11 +25,12 @@ import {
     Calendar,
     CheckCheck,
     Check,
-    Upload
+    Upload,
+    MessageSquare,
+    Settings
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import * as React from "react"
-import { processChat, transcribeAudio, generateSummary } from "~/lib/openai";
 
 interface Message {
     id: string;
@@ -41,15 +42,13 @@ interface Message {
     attachmentName?: string;
     isRead?: boolean;
     emoji?: string;
-    isProcessing?: boolean;
 }
 
-interface UploadedFile {
+interface Suggestion {
     id: string;
-    name: string;
-    type: 'audio' | 'document' | 'image';
-    size?: string;
-    file?: File;
+    text: string;
+    icon?: React.ReactNode;
+    category: 'greeting' | 'feature' | 'help' | 'action' | 'followup';
 }
 
 interface UseAutoResizeTextareaProps {
@@ -149,39 +148,273 @@ const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
                         transition={{ duration: 0.2 }}
                     />
                 )}
+
+                {props.onChange && (
+                    <div
+                        className="absolute bottom-2 right-2 opacity-0 w-2 h-2 bg-primary rounded-full"
+                        style={{
+                            animation: 'none',
+                        }}
+                        id="textarea-ripple"
+                    />
+                )}
             </div>
         )
     }
 )
 Textarea.displayName = "Textarea"
 
-// Initial welcome message
-const initialMessages: Message[] = [
+// Mock conversation data with realistic meeting assistant interactions
+const mockConversations: Message[] = [
     {
-        id: "welcome",
+        id: "1",
+        content: "Hi Daisy! 👋",
+        sender: 'user',
+        timestamp: new Date(Date.now() - 1000 * 60 * 15), // 15 minutes ago
+        isRead: true
+    },
+    {
+        id: "2",
         content: "Hello! I'm Daisy, your AI meeting assistant. I can help you transcribe audio, generate summaries, extract action items, and sync with your favorite tools. What would you like to do today? ✨",
         sender: 'ai',
-        timestamp: new Date(),
+        timestamp: new Date(Date.now() - 1000 * 60 * 14),
+        isRead: false
+    },
+    {
+        id: "3",
+        content: "I have a team standup recording from this morning. Can you help me transcribe it?",
+        sender: 'user',
+        timestamp: new Date(Date.now() - 1000 * 60 * 12),
         isRead: true
+    },
+    {
+        id: "4",
+        content: "Absolutely! I'd be happy to help you transcribe your team standup. I use OpenAI's Whisper model for 99% accurate transcription in 50+ languages. Just upload your audio file and I'll get started right away! 🎵",
+        sender: 'ai',
+        timestamp: new Date(Date.now() - 1000 * 60 * 11),
+        isRead: false
+    },
+    {
+        id: "5",
+        content: "Here's the recording from our standup",
+        sender: 'user',
+        timestamp: new Date(Date.now() - 1000 * 60 * 10),
+        hasAttachment: true,
+        attachmentType: 'audio',
+        attachmentName: 'team-standup-2024-01-15.mp3',
+        isRead: true
+    },
+    {
+        id: "6",
+        content: "Perfect! I've received your audio file. Let me transcribe this for you...\n\n**Transcription Complete!** ✅\n\nI've successfully transcribed your 23-minute team standup. Here's what I found:\n\n📋 **Key Discussion Points:**\n• Sprint progress review\n• Upcoming feature releases\n• Blocker discussions\n• Team capacity planning\n\n✅ **Action Items Extracted:**\n• John: Complete API documentation by Friday\n• Sarah: Review design mockups by Wednesday\n• Mike: Set up staging environment by Thursday\n\nWould you like me to generate a detailed summary or sync these action items to your calendar?",
+        sender: 'ai',
+        timestamp: new Date(Date.now() - 1000 * 60 * 8),
+        isRead: false
+    },
+    {
+        id: "7",
+        content: "This is amazing! Can you sync the action items to Google Calendar?",
+        sender: 'user',
+        timestamp: new Date(Date.now() - 1000 * 60 * 5),
+        isRead: true
+    },
+    {
+        id: "8",
+        content: "Great choice! I can sync those action items to Google Calendar automatically. 📅\n\n**Calendar Integration:**\n• John's API documentation → Due Friday, Jan 19\n• Sarah's design review → Due Wednesday, Jan 17  \n• Mike's staging setup → Due Thursday, Jan 18\n\nI'll create calendar events with:\n✅ Task descriptions\n✅ Due dates and reminders\n✅ Meeting context links\n✅ Assignee notifications\n\nTo set this up, just click 'Connect Google Calendar' in your integrations. Would you also like me to send a summary to your team's Slack channel?",
+        sender: 'ai',
+        timestamp: new Date(Date.now() - 1000 * 60 * 3),
+        isRead: false
+    },
+    {
+        id: "9",
+        content: "Yes, please send it to our #team-updates channel",
+        sender: 'user',
+        timestamp: new Date(Date.now() - 1000 * 60 * 1),
+        isRead: true
+    },
+    {
+        id: "10",
+        content: "Perfect! I'll send a formatted summary to #team-updates. 💬\n\n**Slack Summary Sent!** ✅\n\nYour team will receive:\n📝 Meeting highlights\n🎯 Action items with owners\n📅 Important deadlines\n🔗 Link to full transcript\n\nIs there anything else you'd like me to help you with? I can also:\n• Generate detailed meeting notes\n• Create follow-up meeting templates\n• Set up recurring meeting analysis\n• Export data to other tools",
+        sender: 'ai',
+        timestamp: new Date(Date.now() - 1000 * 30),
+        isRead: false,
+        emoji: "🎉"
     }
 ];
 
+// Intelligent suggestion system
+const baseSuggestions: Suggestion[] = [
+    { id: "1", text: "Upload another meeting", icon: <Upload className="w-4 h-4" />, category: "action" },
+    { id: "2", text: "Show me integrations", icon: <Zap className="w-4 h-4" />, category: "feature" },
+    { id: "3", text: "How does real-time transcription work?", icon: <Mic className="w-4 h-4" />, category: "feature" },
+    { id: "4", text: "Set up Notion integration", icon: <FileText className="w-4 h-4" />, category: "action" },
+];
+
+const contextualSuggestions: Record<string, Suggestion[]> = {
+    greeting: [
+        { id: "g1", text: "I need help with a meeting recording", category: "action" },
+        { id: "g2", text: "Tell me about your features", category: "feature" },
+        { id: "g3", text: "How accurate is your transcription?", category: "help" },
+    ],
+    transcription: [
+        { id: "t1", text: "Generate a summary please", category: "action" },
+        { id: "t2", text: "Extract action items", category: "action" },
+        { id: "t3", text: "What languages do you support?", category: "help" },
+    ],
+    integration: [
+        { id: "i1", text: "Set up Google Calendar sync", category: "action" },
+        { id: "i2", text: "Connect to Slack", category: "action" },
+        { id: "i3", text: "Show me Notion integration", category: "feature" },
+    ],
+    summary: [
+        { id: "s1", text: "Sync action items to calendar", category: "action" },
+        { id: "s2", text: "Send summary to team", category: "action" },
+        { id: "s3", text: "Export as PDF", category: "action" },
+    ],
+    followup: [
+        { id: "f1", text: "That's perfect, thank you! ✨", category: "followup" },
+        { id: "f2", text: "Can you help with another meeting?", category: "followup" },
+        { id: "f3", text: "How do I upgrade my plan?", category: "help" },
+    ]
+};
+
+// Enhanced AI response system
+const getAIResponse = (userMessage: string, conversationHistory: Message[]): string => {
+    const message = userMessage.toLowerCase();
+    const isFirstMessage = conversationHistory.filter(m => m.sender === 'user').length === 1;
+
+    // First-time greetings
+    if (isFirstMessage && (message.includes('hello') || message.includes('hi') || message.includes('hey'))) {
+        return "Hello! I'm Daisy, your AI meeting assistant. I can help you transcribe audio, generate summaries, extract action items, and sync with your favorite tools. What would you like to do today? ✨";
+    }
+
+    // Audio/transcription related
+    if (message.includes('upload') || message.includes('audio') || message.includes('transcribe') || message.includes('recording')) {
+        return "I'd be happy to help you transcribe audio! You can upload audio files in MP3, WAV, or M4A format. I use OpenAI's Whisper model for 99% accurate transcription in 50+ languages. Just click the attachment button below to get started! 🎵";
+    }
+
+    // Meeting summaries
+    if (message.includes('summary') || message.includes('summarize') || message.includes('meeting')) {
+        return "I excel at generating intelligent meeting summaries! I can identify:\n\n📋 Key discussion points\n🎯 Decisions made\n✅ Action items with assignees\n📅 Deadlines and follow-ups\n👥 Participant insights\n\nJust upload your meeting audio and I'll analyze it for you automatically!";
+    }
+
+    // Action items
+    if (message.includes('action') || message.includes('task') || message.includes('todo')) {
+        return "I'm great at extracting action items from meetings! I can identify:\n\n✅ Who's responsible for each task\n📅 When it's due\n📝 Task descriptions and context\n🔄 Priority levels\n\nI can also automatically sync these to your calendar or project management tools. Would you like me to set up an integration?";
+    }
+
+    // Integrations
+    if (message.includes('integration') || message.includes('calendar') || message.includes('slack') || message.includes('notion') || message.includes('sync')) {
+        return "I integrate seamlessly with all your favorite tools! 🔗\n\n📅 **Google Calendar** - Auto-sync action items as events\n💬 **Slack** - Send summaries to channels\n📝 **Notion** - Save transcripts as pages\n⚡ **Zapier** - Connect to 1000+ apps\n📧 **Email** - Send automated reports\n\nWhich integration would you like to set up first?";
+    }
+
+    // Pricing
+    if (message.includes('price') || message.includes('cost') || message.includes('plan') || message.includes('upgrade')) {
+        return "Here are my flexible pricing options! 💰\n\n🆓 **Free Plan** - 5 meetings/month, basic features\n⭐ **Pro Plan** ($29/month) - Unlimited meetings, all integrations, real-time transcription\n🏢 **Enterprise** - Custom pricing, advanced security, dedicated support\n\nAll plans include AI summaries and action item extraction. Want to start with a free trial?";
+    }
+
+    // Features overview
+    if (message.includes('feature') || message.includes('what can') || message.includes('help') || message.includes('capabilities')) {
+        return "Here's what I can do for you! ✨\n\n🎵 **AI Transcription** - 99% accuracy, 50+ languages\n📋 **Smart Summaries** - Key points, decisions, insights\n✅ **Action Items** - Auto-extract with assignees & deadlines\n🔗 **Integrations** - Sync with your favorite tools\n⚡ **Real-time** - Live transcription during meetings\n💬 **Chat Interface** - Easy access to all features\n\nWhat would you like to try first?";
+    }
+
+    // Real-time features
+    if (message.includes('real-time') || message.includes('live') || message.includes('record')) {
+        return "Yes! I can transcribe meetings in real-time as they happen! 🔴\n\n⚡ Live captions during meetings\n📝 Automatic note-taking\n🎯 Real-time action item detection\n📊 Live participant insights\n💾 Auto-save transcripts\n\nJust click 'Record Live' and I'll provide live captions while automatically generating summaries when the meeting ends. Perfect for staying focused on the conversation!";
+    }
+
+    // Languages
+    if (message.includes('language') || message.includes('spanish') || message.includes('french') || message.includes('multilingual')) {
+        return "I support transcription in 50+ languages! 🌍\n\n🇺🇸 English • 🇪🇸 Spanish • 🇫🇷 French • 🇩🇪 German\n🇮🇹 Italian • 🇵🇹 Portuguese • 🇳🇱 Dutch • 🇷🇺 Russian\n🇨🇳 Chinese • 🇯🇵 Japanese • 🇰🇷 Korean • And many more!\n\nThe AI automatically detects the language being spoken for seamless transcription. Mixed-language meetings are supported too!";
+    }
+
+    // Security/Privacy
+    if (message.includes('secure') || message.includes('privacy') || message.includes('safe') || message.includes('data')) {
+        return "Your privacy and security are my top priorities! 🔒\n\n🛡️ Enterprise-grade encryption\n🗑️ Audio files deleted after processing\n✅ SOC 2 compliant\n🚫 Never used for AI training\n🔐 GDPR compliant\n🏢 On-premise options available\n\nYour meeting data stays private and secure. I only process what's needed to provide transcription and summaries.";
+    }
+
+    // Positive responses
+    if (message.includes('thank') || message.includes('perfect') || message.includes('great') || message.includes('awesome')) {
+        return "You're very welcome! I'm here to make your meetings more productive. 😊\n\nIs there anything else I can help you with today? I can:\n\n🎵 Process another meeting recording\n🔗 Set up additional integrations\n📊 Show you advanced features\n💡 Answer any other questions\n\nJust let me know how I can assist!";
+    }
+
+    // Setup/getting started
+    if (message.includes('setup') || message.includes('start') || message.includes('begin') || message.includes('get started')) {
+        return "Let's get you started! Here's the quickest way to begin: 🚀\n\n1️⃣ **Upload Audio** - Click the attachment button below\n2️⃣ **Choose Format** - MP3, WAV, M4A all work great\n3️⃣ **Wait for Magic** - I'll transcribe and analyze automatically\n4️⃣ **Review Results** - Get summaries, action items, and insights\n5️⃣ **Sync & Share** - Connect your tools for seamless workflow\n\nReady to upload your first meeting?";
+    }
+
+    // Default responses with variety
+    const defaultResponses = [
+        "That's an interesting question! I'm designed to help with meeting transcription, summaries, and action items. Could you tell me more about what you're looking to accomplish? 🤔",
+        "I'd love to help you with that! As your AI meeting assistant, I specialize in transcribing audio, generating summaries, and managing action items. What specific task can I assist you with? ✨",
+        "Thanks for reaching out! I'm here to make your meetings more productive. Whether you need transcription, summaries, or help with action items, I'm ready to assist. What would you like to work on? 🎯",
+        "Great question! I'm Daisy, your AI meeting assistant. I can help transform your meeting recordings into actionable insights. What type of meeting support do you need today? 📋",
+    ];
+
+    return defaultResponses[Math.floor(Math.random() * defaultResponses.length)];
+};
+
+// Get contextual suggestions based on conversation
+const getContextualSuggestions = (messages: Message[], currentInput: string): Suggestion[] => {
+    const lastAIMessage = messages.filter(m => m.sender === 'ai').pop();
+    const lastUserMessage = messages.filter(m => m.sender === 'user').pop();
+
+    // If user is typing, filter suggestions based on input
+    if (currentInput.length > 0) {
+        const allSuggestions = [
+            ...baseSuggestions,
+            ...Object.values(contextualSuggestions).flat()
+        ];
+
+        return allSuggestions
+            .filter(s => s.text.toLowerCase().includes(currentInput.toLowerCase()))
+            .slice(0, 3);
+    }
+
+    // No messages yet - show greeting suggestions
+    if (messages.length === 0) {
+        return baseSuggestions.slice(0, 4);
+    }
+
+    // Context-based suggestions
+    if (lastAIMessage?.content.includes('transcrib')) {
+        return contextualSuggestions.transcription;
+    }
+
+    if (lastAIMessage?.content.includes('integrat') || lastAIMessage?.content.includes('sync')) {
+        return contextualSuggestions.integration;
+    }
+
+    if (lastAIMessage?.content.includes('summary') || lastAIMessage?.content.includes('action item')) {
+        return contextualSuggestions.summary;
+    }
+
+    if (lastAIMessage?.content.includes('welcome') || lastAIMessage?.content.includes('thank')) {
+        return contextualSuggestions.followup;
+    }
+
+    if (lastUserMessage?.content.toLowerCase().includes('hi') || lastUserMessage?.content.toLowerCase().includes('hello')) {
+        return contextualSuggestions.greeting;
+    }
+
+    // Default suggestions
+    return baseSuggestions.slice(1, 5);
+};
+
 export function AnimatedAIChatNew() {
     const [value, setValue] = useState("");
-    const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
+    const [attachments, setAttachments] = useState<string[]>([]);
     const [isTyping, setIsTyping] = useState(false);
     const [isPending, startTransition] = useTransition();
     const [activeSuggestion, setActiveSuggestion] = useState<number>(-1);
     const [showCommandPalette, setShowCommandPalette] = useState(false);
     const [recentCommand, setRecentCommand] = useState<string | null>(null);
     const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
-    const [messages, setMessages] = useState<Message[]>(initialMessages);
+    const [messages, setMessages] = useState<Message[]>(mockConversations);
     const [inputFocused, setInputFocused] = useState(false);
-    const [suggestions, setSuggestions] = useState<string[]>([]);
-    const [isProcessingFile, setIsProcessingFile] = useState(false);
+    const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const commandPaletteRef = useRef<HTMLDivElement>(null);
-    const fileInputRef = useRef<HTMLInputElement>(null);
     const { textareaRef, adjustHeight } = useAutoResizeTextarea({
         minHeight: 60,
         maxHeight: 200,
@@ -191,7 +424,7 @@ export function AnimatedAIChatNew() {
         {
             icon: <Upload className="w-4 h-4" />,
             label: "Upload Audio",
-            description: "Upload meeting recording for transcription",
+            description: "Upload a meeting recording",
             prefix: "/upload"
         },
         {
@@ -203,7 +436,7 @@ export function AnimatedAIChatNew() {
         {
             icon: <Calendar className="w-4 h-4" />,
             label: "Schedule",
-            description: "Schedule a new meeting",
+            description: "Schedule a meeting",
             prefix: "/schedule"
         },
         {
@@ -214,49 +447,11 @@ export function AnimatedAIChatNew() {
         },
     ];
 
-    // Smart suggestions based on conversation context
-    const getSmartSuggestions = (lastMessage: string): string[] => {
-        const message = lastMessage.toLowerCase();
-        
-        if (message.includes('upload') || message.includes('audio') || message.includes('recording')) {
-            return [
-                "Generate a summary from this recording",
-                "Extract action items",
-                "Identify speakers in the audio"
-            ];
-        }
-        
-        if (message.includes('transcrib') || message.includes('transcript')) {
-            return [
-                "Create meeting summary",
-                "Find action items",
-                "Export transcript as PDF"
-            ];
-        }
-        
-        if (message.includes('summary') || message.includes('action')) {
-            return [
-                "Sync to Google Calendar",
-                "Send to Slack channel",
-                "Save to Notion"
-            ];
-        }
-        
-        if (message.includes('integrat')) {
-            return [
-                "Connect Google Calendar",
-                "Set up Slack notifications",
-                "Configure Notion sync"
-            ];
-        }
-        
-        return [
-            "Upload a meeting recording",
-            "How does transcription work?",
-            "Show me integrations",
-            "What are your features?"
-        ];
-    };
+    // Update suggestions when messages or input changes
+    useEffect(() => {
+        const newSuggestions = getContextualSuggestions(messages, value);
+        setSuggestions(newSuggestions);
+    }, [messages, value]);
 
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -265,22 +460,6 @@ export function AnimatedAIChatNew() {
     useEffect(() => {
         scrollToBottom();
     }, [messages, isTyping]);
-
-    useEffect(() => {
-        if (messages.length > 1) {
-            const lastAIMessage = messages.filter(m => m.sender === 'ai').pop();
-            if (lastAIMessage) {
-                setSuggestions(getSmartSuggestions(lastAIMessage.content));
-            }
-        } else {
-            setSuggestions([
-                "Upload a meeting recording",
-                "How does transcription work?",
-                "Show me integrations",
-                "What are your features?"
-            ]);
-        }
-    }, [messages]);
 
     useEffect(() => {
         if (value.startsWith('/') && !value.includes(' ')) {
@@ -329,101 +508,6 @@ export function AnimatedAIChatNew() {
         };
     }, []);
 
-    const handleFileUpload = async (file: File) => {
-        const fileId = Date.now().toString();
-        const uploadedFile: UploadedFile = {
-            id: fileId,
-            name: file.name,
-            type: file.type.startsWith('audio/') ? 'audio' : 
-                  file.type.startsWith('image/') ? 'image' : 'document',
-            size: `${(file.size / 1024 / 1024).toFixed(1)} MB`,
-            file: file
-        };
-
-        setUploadedFiles(prev => [...prev, uploadedFile]);
-
-        // Add user message about file upload
-        const userMessage: Message = {
-            id: Date.now().toString(),
-            content: `I've uploaded ${file.name}`,
-            sender: 'user',
-            timestamp: new Date(),
-            hasAttachment: true,
-            attachmentType: uploadedFile.type,
-            attachmentName: file.name,
-            isRead: true
-        };
-
-        setMessages(prev => [...prev, userMessage]);
-
-        // Process audio files
-        if (file.type.startsWith('audio/')) {
-            setIsProcessingFile(true);
-            setIsTyping(true);
-
-            try {
-                // Add processing message
-                const processingMessage: Message = {
-                    id: (Date.now() + 1).toString(),
-                    content: "I'm processing your audio file. This may take a moment...",
-                    sender: 'ai',
-                    timestamp: new Date(),
-                    isProcessing: true
-                };
-
-                setMessages(prev => [...prev, processingMessage]);
-
-                // Transcribe audio
-                const transcription = await transcribeAudio(file);
-                
-                // Generate summary
-                const summary = await generateSummary(transcription);
-
-                // Remove processing message and add results
-                setMessages(prev => prev.filter(m => !m.isProcessing));
-
-                const transcriptMessage: Message = {
-                    id: (Date.now() + 2).toString(),
-                    content: `**Transcription Complete!** ✅\n\n**Summary:**\n${summary.summary}\n\n**Key Points:**\n${summary.keyPoints.map(point => `• ${point}`).join('\n')}\n\n**Decisions Made:**\n${summary.decisions.map(decision => `• ${decision}`).join('\n')}\n\n**Action Items:**\n${summary.actionItems.map(item => `• ${item.title}${item.assignee ? ` (${item.assignee})` : ''}${item.dueDate ? ` - Due: ${item.dueDate}` : ''}`).join('\n')}`,
-                    sender: 'ai',
-                    timestamp: new Date(),
-                    isRead: false
-                };
-
-                setMessages(prev => [...prev, transcriptMessage]);
-
-            } catch (error) {
-                console.error('Error processing audio:', error);
-                
-                setMessages(prev => prev.filter(m => !m.isProcessing));
-                
-                const errorMessage: Message = {
-                    id: (Date.now() + 3).toString(),
-                    content: "I encountered an error processing your audio file. This might be due to the file format or size. Please try again with a different file or check that your API keys are configured correctly.",
-                    sender: 'ai',
-                    timestamp: new Date(),
-                    isRead: false
-                };
-
-                setMessages(prev => [...prev, errorMessage]);
-            } finally {
-                setIsProcessingFile(false);
-                setIsTyping(false);
-            }
-        } else {
-            // Handle non-audio files
-            const responseMessage: Message = {
-                id: (Date.now() + 1).toString(),
-                content: `I've received your ${uploadedFile.type} file "${file.name}". While I specialize in audio transcription, I can help you with questions about this file or guide you on how to work with meeting-related documents.`,
-                sender: 'ai',
-                timestamp: new Date(),
-                isRead: false
-            };
-
-            setMessages(prev => [...prev, responseMessage]);
-        }
-    };
-
     const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
         if (showCommandPalette) {
             if (e.key === 'ArrowDown') {
@@ -458,8 +542,8 @@ export function AnimatedAIChatNew() {
         }
     };
 
-    const handleSendMessage = async () => {
-        if (!value.trim() || isTyping) return;
+    const handleSendMessage = () => {
+        if (!value.trim()) return;
 
         const userMessage: Message = {
             id: Date.now().toString(),
@@ -474,53 +558,40 @@ export function AnimatedAIChatNew() {
         adjustHeight(true);
         setIsTyping(true);
 
-        try {
-            // Process the message with OpenAI
-            const response = await processChat(userMessage.content);
+        // Simulate AI thinking time
+        const thinkingTime = 1500 + Math.random() * 1000; // 1.5-2.5 seconds
 
-            const aiMessage: Message = {
+        setTimeout(() => {
+            const aiResponse: Message = {
                 id: (Date.now() + 1).toString(),
-                content: response,
+                content: getAIResponse(userMessage.content, [...messages, userMessage]),
                 sender: 'ai',
                 timestamp: new Date(),
                 isRead: false
             };
 
-            setMessages(prev => [...prev, aiMessage]);
-        } catch (error) {
-            console.error('Error processing chat:', error);
-            
-            const errorMessage: Message = {
-                id: (Date.now() + 1).toString(),
-                content: "I'm having trouble processing your request right now. Please make sure your API keys are configured correctly in the environment variables.",
-                sender: 'ai',
-                timestamp: new Date(),
-                isRead: false
-            };
-
-            setMessages(prev => [...prev, errorMessage]);
-        } finally {
+            setMessages(prev => [...prev, aiResponse]);
             setIsTyping(false);
+        }, thinkingTime);
+    };
+
+    const handleSuggestionClick = (suggestion: Suggestion) => {
+        setValue(suggestion.text);
+        // Auto-send if it's a simple greeting or action
+        if (suggestion.category === 'greeting' || suggestion.category === 'action') {
+            setTimeout(() => {
+                handleSendMessage();
+            }, 100);
         }
     };
 
     const handleAttachFile = () => {
-        fileInputRef.current?.click();
+        const mockFileName = `meeting-recording-${Math.floor(Math.random() * 1000)}.mp3`;
+        setAttachments(prev => [...prev, mockFileName]);
     };
 
-    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (file) {
-            handleFileUpload(file);
-        }
-        // Reset the input
-        if (fileInputRef.current) {
-            fileInputRef.current.value = '';
-        }
-    };
-
-    const removeUploadedFile = (index: number) => {
-        setUploadedFiles(prev => prev.filter((_, i) => i !== index));
+    const removeAttachment = (index: number) => {
+        setAttachments(prev => prev.filter((_, i) => i !== index));
     };
 
     const selectCommandSuggestion = (index: number) => {
@@ -530,14 +601,6 @@ export function AnimatedAIChatNew() {
 
         setRecentCommand(selectedCommand.label);
         setTimeout(() => setRecentCommand(null), 2000);
-    };
-
-    const handleSuggestionClick = (suggestion: string) => {
-        setValue(suggestion);
-        // Auto-send simple suggestions
-        setTimeout(() => {
-            handleSendMessage();
-        }, 100);
     };
 
     const formatTime = (date: Date) => {
@@ -557,28 +620,15 @@ export function AnimatedAIChatNew() {
         }
     };
 
-    const getFileIcon = (type: string) => {
-        switch (type) {
-            case 'audio':
-                return <Mic className="w-3 h-3 text-primary" />;
-            case 'document':
-                return <FileText className="w-3 h-3 text-primary" />;
-            case 'image':
-                return <ImageIcon className="w-3 h-3 text-primary" />;
-            default:
-                return <FileText className="w-3 h-3 text-primary" />;
-        }
-    };
-
-    // Show welcome screen if no messages (except initial)
-    const showWelcomeScreen = messages.length <= 1 && !isTyping;
+    // Show welcome screen if no messages, otherwise show chat
+    const showWelcomeScreen = messages.length === 0;
 
     if (showWelcomeScreen) {
         return (
             <div className="min-h-screen flex flex-col w-full items-center justify-center bg-background text-foreground p-6 relative overflow-hidden">
                 <div className="absolute inset-0 w-full h-full overflow-hidden">
                     <div className="absolute top-0 left-1/4 w-96 h-96 bg-primary/5 rounded-full mix-blend-normal filter blur-[128px] animate-pulse" />
-                    <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-primary/5 rounded-full mix-blend-normal filter blur-[128px] animate-pulse delay-700" />
+                    <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-primary/10 rounded-full mix-blend-normal filter blur-[128px] animate-pulse delay-700" />
                     <div className="absolute top-1/4 right-1/3 w-64 h-64 bg-primary/5 rounded-full mix-blend-normal filter blur-[96px] animate-pulse delay-1000" />
                 </div>
                 <div className="w-full max-w-2xl mx-auto relative">
@@ -611,12 +661,12 @@ export function AnimatedAIChatNew() {
                                 animate={{ opacity: 1 }}
                                 transition={{ delay: 0.3 }}
                             >
-                                Upload audio, ask questions, or type a command
+                                Type a command or ask a question
                             </motion.p>
                         </div>
 
                         <motion.div
-                            className="relative backdrop-blur-2xl bg-card/50 rounded-2xl border border-border shadow-2xl"
+                            className="relative backdrop-blur-2xl bg-card rounded-2xl border border-border shadow-2xl"
                             initial={{ scale: 0.98 }}
                             animate={{ scale: 1 }}
                             transition={{ delay: 0.1 }}
@@ -646,7 +696,7 @@ export function AnimatedAIChatNew() {
                                                     animate={{ opacity: 1 }}
                                                     transition={{ delay: index * 0.03 }}
                                                 >
-                                                    <div className="w-5 h-5 flex items-center justify-center text-muted-foreground">
+                                                    <div className="w-5 h-5 flex items-center justify-center">
                                                         {suggestion.icon}
                                                     </div>
                                                     <div className="font-medium">{suggestion.label}</div>
@@ -691,30 +741,24 @@ export function AnimatedAIChatNew() {
                             </div>
 
                             <AnimatePresence>
-                                {uploadedFiles.length > 0 && (
+                                {attachments.length > 0 && (
                                     <motion.div
                                         className="px-4 pb-3 flex gap-2 flex-wrap"
                                         initial={{ opacity: 0, height: 0 }}
                                         animate={{ opacity: 1, height: "auto" }}
                                         exit={{ opacity: 0, height: 0 }}
                                     >
-                                        {uploadedFiles.map((file, index) => (
+                                        {attachments.map((file, index) => (
                                             <motion.div
                                                 key={index}
-                                                className="flex items-center gap-2 text-xs bg-muted py-1.5 px-3 rounded-lg border border-border"
+                                                className="flex items-center gap-2 text-xs bg-muted py-1.5 px-3 rounded-lg text-muted-foreground"
                                                 initial={{ opacity: 0, scale: 0.9 }}
                                                 animate={{ opacity: 1, scale: 1 }}
                                                 exit={{ opacity: 0, scale: 0.9 }}
                                             >
-                                                {getFileIcon(file.type)}
-                                                <div className="flex flex-col">
-                                                    <span className="text-xs font-medium text-foreground">{file.name}</span>
-                                                    {file.size && (
-                                                        <span className="text-xs text-muted-foreground">{file.size}</span>
-                                                    )}
-                                                </div>
+                                                <span>{file}</span>
                                                 <button
-                                                    onClick={() => removeUploadedFile(index)}
+                                                    onClick={() => removeAttachment(index)}
                                                     className="text-muted-foreground hover:text-foreground transition-colors"
                                                 >
                                                     <XIcon className="w-3 h-3" />
@@ -732,13 +776,8 @@ export function AnimatedAIChatNew() {
                                         onClick={handleAttachFile}
                                         whileTap={{ scale: 0.94 }}
                                         className="p-2 text-muted-foreground hover:text-foreground rounded-lg transition-colors relative group"
-                                        disabled={isProcessingFile}
                                     >
                                         <Paperclip className="w-4 h-4" />
-                                        <motion.span
-                                            className="absolute inset-0 bg-accent/50 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity"
-                                            layoutId="button-highlight"
-                                        />
                                     </motion.button>
                                     <motion.button
                                         type="button"
@@ -750,14 +789,10 @@ export function AnimatedAIChatNew() {
                                         whileTap={{ scale: 0.94 }}
                                         className={cn(
                                             "p-2 text-muted-foreground hover:text-foreground rounded-lg transition-colors relative group",
-                                            showCommandPalette && "bg-accent text-foreground"
+                                            showCommandPalette && "bg-accent text-accent-foreground"
                                         )}
                                     >
                                         <Command className="w-4 h-4" />
-                                        <motion.span
-                                            className="absolute inset-0 bg-accent/50 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity"
-                                            layoutId="button-highlight"
-                                        />
                                     </motion.button>
                                 </div>
 
@@ -771,7 +806,7 @@ export function AnimatedAIChatNew() {
                                         "px-4 py-2 rounded-lg text-sm font-medium transition-all",
                                         "flex items-center gap-2",
                                         value.trim()
-                                            ? "bg-primary text-primary-foreground shadow-lg shadow-primary/10"
+                                            ? "bg-primary text-primary-foreground shadow-lg"
                                             : "bg-muted text-muted-foreground"
                                     )}
                                 >
@@ -790,7 +825,7 @@ export function AnimatedAIChatNew() {
                                 <motion.button
                                     key={suggestion.prefix}
                                     onClick={() => selectCommandSuggestion(index)}
-                                    className="flex items-center gap-2 px-3 py-2 bg-card/50 hover:bg-card rounded-lg text-sm text-muted-foreground hover:text-foreground transition-all relative group border border-border/50 hover:border-border"
+                                    className="flex items-center gap-2 px-3 py-2 bg-muted/50 hover:bg-muted rounded-lg text-sm text-muted-foreground hover:text-foreground transition-all border border-border/50 hover:border-border"
                                     initial={{ opacity: 0, y: 10 }}
                                     animate={{ opacity: 1, y: 0 }}
                                     transition={{ delay: index * 0.1 }}
@@ -803,17 +838,9 @@ export function AnimatedAIChatNew() {
                     </motion.div>
                 </div>
 
-                <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept="audio/*,image/*,.pdf,.doc,.docx,.txt"
-                    onChange={handleFileChange}
-                    className="hidden"
-                />
-
                 {inputFocused && (
                     <motion.div
-                        className="fixed w-[50rem] h-[50rem] rounded-full pointer-events-none z-0 opacity-[0.02] bg-gradient-to-r from-primary via-primary/50 to-primary/30 blur-[96px]"
+                        className="fixed w-[50rem] h-[50rem] rounded-full pointer-events-none z-0 opacity-[0.02] bg-gradient-to-r from-primary via-primary/50 to-primary blur-[96px]"
                         animate={{
                             x: mousePosition.x - 400,
                             y: mousePosition.y - 400,
@@ -830,7 +857,7 @@ export function AnimatedAIChatNew() {
         );
     }
 
-    // Chat interface
+    // Chat interface with messages
     return (
         <div className="flex flex-col h-full bg-background">
             {/* Messages Area */}
@@ -883,14 +910,6 @@ export function AnimatedAIChatNew() {
                                     <p className="text-sm leading-relaxed whitespace-pre-wrap">
                                         {message.content}
                                     </p>
-
-                                    {/* Processing indicator */}
-                                    {message.isProcessing && (
-                                        <div className="flex items-center gap-2 mt-2">
-                                            <LoaderIcon className="w-4 h-4 animate-spin" />
-                                            <span className="text-xs opacity-70">Processing...</span>
-                                        </div>
-                                    )}
 
                                     {/* Emoji reaction */}
                                     {message.emoji && (
@@ -953,7 +972,7 @@ export function AnimatedAIChatNew() {
 
             {/* Suggestions Area */}
             <AnimatePresence>
-                {suggestions.length > 0 && !isTyping && (
+                {suggestions.length > 0 && (
                     <motion.div
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
@@ -961,18 +980,19 @@ export function AnimatedAIChatNew() {
                         className="px-6 pb-2"
                     >
                         <div className="flex gap-2 flex-wrap">
-                            {suggestions.slice(0, 4).map((suggestion, index) => (
+                            {suggestions.map((suggestion) => (
                                 <motion.button
-                                    key={suggestion}
+                                    key={suggestion.id}
                                     onClick={() => handleSuggestionClick(suggestion)}
                                     className="flex items-center gap-2 px-3 py-2 bg-muted/50 hover:bg-muted rounded-full text-sm text-muted-foreground hover:text-foreground transition-all border border-border/50 hover:border-border"
                                     whileHover={{ scale: 1.02 }}
                                     whileTap={{ scale: 0.98 }}
                                     initial={{ opacity: 0, scale: 0.9 }}
                                     animate={{ opacity: 1, scale: 1 }}
-                                    transition={{ duration: 0.2, delay: index * 0.05 }}
+                                    transition={{ duration: 0.2 }}
                                 >
-                                    <span>{suggestion}</span>
+                                    {suggestion.icon}
+                                    <span>{suggestion.text}</span>
                                 </motion.button>
                             ))}
                         </div>
@@ -982,7 +1002,7 @@ export function AnimatedAIChatNew() {
 
             {/* Input Area */}
             <div className="p-6 border-t border-border">
-                <div className="relative backdrop-blur-2xl bg-card/50 rounded-2xl border border-border shadow-lg">
+                <div className="relative backdrop-blur-2xl bg-card rounded-2xl border border-border shadow-sm">
                     <AnimatePresence>
                         {showCommandPalette && (
                             <motion.div
@@ -1008,7 +1028,7 @@ export function AnimatedAIChatNew() {
                                             animate={{ opacity: 1 }}
                                             transition={{ delay: index * 0.03 }}
                                         >
-                                            <div className="w-5 h-5 flex items-center justify-center text-muted-foreground">
+                                            <div className="w-5 h-5 flex items-center justify-center">
                                                 {suggestion.icon}
                                             </div>
                                             <div className="font-medium">{suggestion.label}</div>
@@ -1049,35 +1069,28 @@ export function AnimatedAIChatNew() {
                                 overflow: "hidden",
                             }}
                             showRing={false}
-                            disabled={isTyping || isProcessingFile}
                         />
                     </div>
 
                     <AnimatePresence>
-                        {uploadedFiles.length > 0 && (
+                        {attachments.length > 0 && (
                             <motion.div
                                 className="px-4 pb-3 flex gap-2 flex-wrap"
                                 initial={{ opacity: 0, height: 0 }}
                                 animate={{ opacity: 1, height: "auto" }}
                                 exit={{ opacity: 0, height: 0 }}
                             >
-                                {uploadedFiles.map((file, index) => (
+                                {attachments.map((file, index) => (
                                     <motion.div
                                         key={index}
-                                        className="flex items-center gap-2 text-xs bg-muted py-1.5 px-3 rounded-lg border border-border"
+                                        className="flex items-center gap-2 text-xs bg-muted py-1.5 px-3 rounded-lg text-muted-foreground"
                                         initial={{ opacity: 0, scale: 0.9 }}
                                         animate={{ opacity: 1, scale: 1 }}
                                         exit={{ opacity: 0, scale: 0.9 }}
                                     >
-                                        {getFileIcon(file.type)}
-                                        <div className="flex flex-col">
-                                            <span className="text-xs font-medium text-foreground">{file.name}</span>
-                                            {file.size && (
-                                                <span className="text-xs text-muted-foreground">{file.size}</span>
-                                            )}
-                                        </div>
+                                        <span>{file}</span>
                                         <button
-                                            onClick={() => removeUploadedFile(index)}
+                                            onClick={() => removeAttachment(index)}
                                             className="text-muted-foreground hover:text-foreground transition-colors"
                                         >
                                             <XIcon className="w-3 h-3" />
@@ -1095,13 +1108,8 @@ export function AnimatedAIChatNew() {
                                 onClick={handleAttachFile}
                                 whileTap={{ scale: 0.94 }}
                                 className="p-2 text-muted-foreground hover:text-foreground rounded-lg transition-colors relative group"
-                                disabled={isProcessingFile}
                             >
                                 <Paperclip className="w-4 h-4" />
-                                <motion.span
-                                    className="absolute inset-0 bg-accent/50 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity"
-                                    layoutId="button-highlight"
-                                />
                             </motion.button>
                             <motion.button
                                 type="button"
@@ -1113,14 +1121,10 @@ export function AnimatedAIChatNew() {
                                 whileTap={{ scale: 0.94 }}
                                 className={cn(
                                     "p-2 text-muted-foreground hover:text-foreground rounded-lg transition-colors relative group",
-                                    showCommandPalette && "bg-accent text-foreground"
+                                    showCommandPalette && "bg-accent text-accent-foreground"
                                 )}
                             >
                                 <Command className="w-4 h-4" />
-                                <motion.span
-                                    className="absolute inset-0 bg-accent/50 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity"
-                                    layoutId="button-highlight"
-                                />
                             </motion.button>
                         </div>
 
@@ -1129,16 +1133,16 @@ export function AnimatedAIChatNew() {
                             onClick={handleSendMessage}
                             whileHover={{ scale: 1.01 }}
                             whileTap={{ scale: 0.98 }}
-                            disabled={isTyping || !value.trim() || isProcessingFile}
+                            disabled={isTyping || !value.trim()}
                             className={cn(
                                 "px-4 py-2 rounded-lg text-sm font-medium transition-all",
                                 "flex items-center gap-2",
-                                value.trim() && !isTyping && !isProcessingFile
-                                    ? "bg-primary text-primary-foreground shadow-lg shadow-primary/10"
+                                value.trim()
+                                    ? "bg-primary text-primary-foreground shadow-lg"
                                     : "bg-muted text-muted-foreground"
                             )}
                         >
-                            {isTyping || isProcessingFile ? (
+                            {isTyping ? (
                                 <LoaderIcon className="w-4 h-4 animate-spin" />
                             ) : (
                                 <SendIcon className="w-4 h-4" />
@@ -1148,14 +1152,6 @@ export function AnimatedAIChatNew() {
                     </div>
                 </div>
             </div>
-
-            <input
-                ref={fileInputRef}
-                type="file"
-                accept="audio/*,image/*,.pdf,.doc,.docx,.txt"
-                onChange={handleFileChange}
-                className="hidden"
-            />
         </div>
     );
 }
