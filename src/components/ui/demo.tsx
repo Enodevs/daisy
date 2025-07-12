@@ -1,9 +1,9 @@
-import { AnimatedAIChatNew } from "~/components/ui/animated-ai-chat-new"
+import { AIAssistantInterfaceV2 } from "~/components/ui/ai-assistant-interface-v2"
 
 export function Demo() {
   return (
     <div className="flex w-screen overflow-x-hidden">
-      <AnimatedAIChatNew />
+      <AIAssistantInterfaceV2 />
     </div>
   );
 }
