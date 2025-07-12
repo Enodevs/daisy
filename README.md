@@ -88,7 +88,15 @@ daisy/
    ```
 
 2. **Set up environment variables:**
-   - Copy `.env.example` to `.env` and fill in required values (OpenAI keys, database URL, etc).
+   - Copy `.env.example` to `.env` and fill in required values:
+   ```bash
+   cp .env.example .env
+   ```
+   - Add your API keys:
+     - **OpenAI API Key** (recommended): Get from https://platform.openai.com/api-keys
+     - **OR Gemini API Key** (alternative): Get from https://makersuite.google.com/app/apikey
+     - **Database URL**: PostgreSQL connection string
+     - **Google OAuth** (optional): For social login
 
 3. **Database setup (optional):**
    ```bash
@@ -105,6 +113,55 @@ daisy/
 
 5. **Open your app:**
    Visit [http://localhost:3000](http://localhost:3000)
+
+## 🤖 AI Configuration
+
+Daisy requires an AI API key to function. You have several options:
+
+### Option 1: OpenAI (Recommended)
+```bash
+OPENAI_API_KEY=sk-your-openai-key-here
+```
+- Best transcription quality with Whisper
+- Reliable chat responses with GPT models
+- Get your key: https://platform.openai.com/api-keys
+
+### Option 2: Google Gemini (Alternative)
+```bash
+GEMINI_API_KEY=your-gemini-key-here
+```
+- Free tier available
+- Good performance for chat
+- Get your key: https://makersuite.google.com/app/apikey
+
+### Option 3: Groq (Alternative)
+```bash
+GROQ_API_KEY=your-groq-key-here
+```
+- Fast inference
+- Good for development
+- Get your key: https://console.groq.com/keys
+
+## 🎯 Features
+
+### Core Functionality
+- **Audio Transcription**: Upload meeting recordings for AI transcription
+- **Smart Summaries**: Automatic generation of meeting summaries
+- **Action Items**: Extract tasks, assignees, and deadlines
+- **Speaker Identification**: Identify different speakers in recordings
+- **Real-time Chat**: Interactive AI assistant for meeting insights
+
+### Integrations
+- **Google Calendar**: Sync action items as calendar events
+- **Slack**: Send summaries to channels
+- **Notion**: Save transcripts as pages
+- **Zapier**: Connect to 1000+ apps
+- **Email**: Automated meeting reports
+
+### File Support
+- **Audio**: MP3, WAV, M4A, FLAC
+- **Documents**: PDF, DOC, DOCX, TXT
+- **Images**: JPG, PNG, GIF (for context)
 
 ---
 

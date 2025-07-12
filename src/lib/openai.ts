@@ -1,16 +1,16 @@
 import OpenAI from 'openai';
 
-if (!process.env.GROQ_API_KEY) {
-  throw new Error('Missing GROQ_API_KEY environment variable');
-}
-
 export const openai = new OpenAI({
-  apiKey: process.env.GEMINI_API_KEY,
-  baseURL: "https://generativelanguage.googleapis.com/v1beta/openai"
+  apiKey: process.env.GEMINI_API_KEY || process.env.OPENAI_API_KEY,
+  baseURL: process.env.GEMINI_API_KEY ? "https://generativelanguage.googleapis.com/v1beta/openai" : undefined
 });
 
 export async function transcribeAudio(audioFile: File): Promise<string> {
   try {
+    if (!process.env.GEMINI_API_KEY && !process.env.OPENAI_API_KEY) {
+      throw new Error('No API key configured. Please set GEMINI_API_KEY or OPENAI_API_KEY in your environment variables.');
+    }
+
     const transcription = await openai.audio.transcriptions.create({
       file: audioFile,
       model: "whisper-1",
@@ -20,7 +20,7 @@ export async function transcribeAudio(audioFile: File): Promise<string> {
     return transcription.text;
   } catch (error) {
     console.error('Transcription error:', error);
-    throw new Error('Failed to transcribe audio');
+    throw new Error('Failed to transcribe audio. Please check your API configuration and try again.');
   }
 }
 
@@ -36,8 +36,12 @@ export async function generateSummary(transcription: string): Promise<{
   }>;
 }> {
   try {
+    if (!process.env.GEMINI_API_KEY && !process.env.OPENAI_API_KEY) {
+      throw new Error('No API key configured. Please set GEMINI_API_KEY or OPENAI_API_KEY in your environment variables.');
+    }
+
     const completion = await openai.chat.completions.create({
-      model: "gemma-3-4b-it",
+      model: process.env.GEMINI_API_KEY ? "gemma-3-4b-it" : "gpt-3.5-turbo",
       messages: [
         {
           role: "system",
@@ -78,19 +82,32 @@ Return the response as JSON with the following structure:
     return JSON.parse(content);
   } catch (error) {
     console.error('Summary generation error:', error);
-    throw new Error('Failed to generate summary');
+    throw new Error('Failed to generate summary. Please check your API configuration and try again.');
   }
 }
 
 export async function processChat(userMessage: string) {
   try {
+    if (!process.env.GEMINI_API_KEY && !process.env.OPENAI_API_KEY) {
+      return "I'm not properly configured yet. Please set up your API keys (GEMINI_API_KEY or OPENAI_API_KEY) in your environment variables to enable AI responses.";
+    }
+
     const completion = await openai.chat.completions.create({
-      model: "gemma-3-4b-it",
+      model: process.env.GEMINI_API_KEY ? "gemma-3-4b-it" : "gpt-3.5-turbo",
       messages: [
         {
           role: "system",
-          content: `You are a friendly AI assistant named DAISY that analyzes meetings, answers questions about them, and perform actions based on the meetings. Please always makesure to give
-                    brief, concise, and straight-forward answers.`
+          content: `You are Daisy, a friendly AI meeting assistant. You help users with:
+          
+          - Transcribing meeting audio files
+          - Generating meeting summaries and action items
+          - Extracting key decisions and insights
+          - Integrating with tools like Google Calendar, Slack, Notion
+          - Scheduling and managing meetings
+          - Answering questions about meeting productivity
+          
+          Always be helpful, concise, and professional. Use emojis sparingly but appropriately. 
+          If users ask about capabilities you don't have, politely redirect them to what you can help with.`
         },
         {
           role: "user",
@@ -108,6 +125,6 @@ export async function processChat(userMessage: string) {
     return content;
   } catch (error) {
     console.error('Chat processing error:', error);
-    throw new Error('Failed to process chat');
+    return "I'm having trouble processing your request right now. This might be due to API configuration issues. Please check that your API keys are set up correctly.";
   }
 }
