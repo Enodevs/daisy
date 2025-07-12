@@ -2,6 +2,9 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { ThemeProvider } from "~/components/theme-provider";
 import Head from "next/head";
+import { Inter } from "next/font/google"
+
+const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
   title: "Daisy - AI Meeting Assistant",
@@ -21,7 +24,7 @@ export default function RootLayout({
         <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
         {/* <link rel="manifest" href="/site.webmanifest"> */}
       </Head>
-      <body className="antialiased">
+      <body className={`antialiased ${inter.className}`}>
         <ThemeProvider
           defaultTheme="system"
           storageKey="daisy-theme"

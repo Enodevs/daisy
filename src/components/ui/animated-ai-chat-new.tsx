@@ -298,7 +298,7 @@ export function AnimatedAIChatNew() {
     });
     const [inputFocused, setInputFocused] = useState(false);
     const commandPaletteRef = useRef<HTMLDivElement>(null);
-
+    const [isHovered, setIsHovered] = useState(false);
     const commandSuggestions: CommandSuggestion[] = [
         {
             icon: <Mic className="w-4 h-4" />,
@@ -430,15 +430,15 @@ export function AnimatedAIChatNew() {
                 timestamp: new Date(),
                 isRead: true
             };
-            
+
             setMessages(prev => [...prev, userMessage]);
             setValue("");
             adjustHeight(true);
             setIsTyping(true);
-            
+
             // Simulate AI thinking time
             const thinkingTime = 1500 + Math.random() * 1000; // 1.5-2.5 seconds
-            
+
             setTimeout(() => {
                 const aiMessage: Message = {
                     id: (Date.now() + 1).toString(),
@@ -447,7 +447,7 @@ export function AnimatedAIChatNew() {
                     timestamp: new Date(),
                     isRead: false
                 };
-                
+
                 setMessages(prev => [...prev, aiMessage]);
                 setIsTyping(false);
             }, thinkingTime);
@@ -480,10 +480,6 @@ export function AnimatedAIChatNew() {
 
         setRecentCommand(selectedCommand.label);
         setTimeout(() => setRecentCommand(null), 2000);
-    };
-
-    const formatTime = (date: Date) => {
-        return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     };
 
     const formatDate = (date: Date) => {
@@ -565,7 +561,6 @@ export function AnimatedAIChatNew() {
                         ))}
                     </AnimatePresence>
 
-                    {/* Typing Indicator */}
                     <AnimatePresence>
                         {isTyping && (
                             <motion.div
@@ -587,290 +582,249 @@ export function AnimatedAIChatNew() {
                             </motion.div>
                         )}
                     </AnimatePresence>
-    return (
-        <div className="min-h-screen flex flex-col w-full items-center justify-center bg-background text-foreground p-6 relative overflow-hidden">
-            <div className="absolute inset-0 w-full h-full overflow-hidden">
-                <div className="absolute top-0 left-1/4 w-96 h-96 bg-primary/5 rounded-full mix-blend-normal filter blur-[128px] animate-pulse" />
-                <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-primary/10 rounded-full mix-blend-normal filter blur-[128px] animate-pulse delay-700" />
-                <div className="absolute top-1/4 right-1/3 w-64 h-64 bg-primary/5 rounded-full mix-blend-normal filter blur-[96px] animate-pulse delay-1000" />
-            </div>
-            <div className="w-full max-w-2xl mx-auto relative">
-                <motion.div
-                    className="relative z-10 space-y-12"
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.6, ease: "easeOut" }}
-                >
-                    <div className="text-center space-y-3">
-                        <motion.div
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: 0.2, duration: 0.5 }}
-                            className="inline-block"
-                        >
-                            <h1 className="text-3xl font-medium tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-foreground to-muted-foreground pb-1">
-                                How can I help today?
-                            </h1>
+                    <div className="min-h-screen flex flex-col w-full items-center justify-center bg-background text-foreground p-6 relative overflow-hidden">
+                        <div className="absolute inset-0 w-full h-full overflow-hidden">
+                            <div className="absolute top-0 left-1/4 w-96 h-96 bg-primary/5 rounded-full mix-blend-normal filter blur-[128px] animate-pulse" />
+                            <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-primary/10 rounded-full mix-blend-normal filter blur-[128px] animate-pulse delay-700" />
+                            <div className="absolute top-1/4 right-1/3 w-64 h-64 bg-primary/5 rounded-full mix-blend-normal filter blur-[96px] animate-pulse delay-1000" />
+                        </div>
+                        <div className="w-full max-w-2xl mx-auto relative">
                             <motion.div
-                                className="h-px bg-gradient-to-r from-transparent via-border to-transparent"
-                                initial={{ width: 0, opacity: 0 }}
-                                animate={{ width: "100%", opacity: 1 }}
-                                transition={{ delay: 0.5, duration: 0.8 }}
-                            />
-                        </motion.div>
-                        <motion.p
-                            className="text-sm text-muted-foreground"
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            transition={{ delay: 0.3 }}
-                        >
-                            Type a command or ask a question about your meetings
-                        </motion.p>
-                    </div>
+                                className="relative z-10 space-y-12"
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ duration: 0.6, ease: "easeOut" }}
+                            >
+                                <div className="text-center space-y-3">
+                                    <motion.div
+                                        initial={{ opacity: 0, y: 10 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        transition={{ delay: 0.2, duration: 0.5 }}
+                                        className="inline-block"
+                                    >
+                                        <h1 className="text-3xl font-medium tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-foreground to-muted-foreground pb-1">
+                                            How can I help today?
+                                        </h1>
+                                        <motion.div
+                                            className="h-px bg-gradient-to-r from-transparent via-border to-transparent"
+                                            initial={{ width: 0, opacity: 0 }}
+                                            animate={{ width: "100%", opacity: 1 }}
+                                            transition={{ delay: 0.5, duration: 0.8 }}
+                                        />
+                                    </motion.div>
+                                    <motion.p
+                                        className="text-sm text-muted-foreground"
+                                        initial={{ opacity: 0 }}
+                                        animate={{ opacity: 1 }}
+                                        transition={{ delay: 0.3 }}
+                                    >
+                                        Type a command or ask a question about your meetings
+                                    </motion.p>
+                                </div>
 
-                    <motion.div
-                        className="relative backdrop-blur-2xl bg-card/50 rounded-2xl border border-border shadow-2xl"
-                        initial={{ scale: 0.98 }}
-                        animate={{ scale: 1 }}
-                        transition={{ delay: 0.1 }}
-                    >
-                        <AnimatePresence>
-                            {showCommandPalette && (
                                 <motion.div
-                                    ref={commandPaletteRef}
-                                    className="absolute left-4 right-4 bottom-full mb-2 backdrop-blur-xl bg-popover/95 rounded-lg z-50 shadow-lg border border-border overflow-hidden"
-                                    initial={{ opacity: 0, y: 5 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    exit={{ opacity: 0, y: 5 }}
-                                    transition={{ duration: 0.15 }}
+                                    className="relative backdrop-blur-2xl bg-card/50 rounded-2xl border border-border shadow-2xl"
+                                    initial={{ scale: 0.98 }}
+                                    animate={{ scale: 1 }}
+                                    transition={{ delay: 0.1 }}
                                 >
-                                    <div className="py-1">
-                                        {commandSuggestions.map((suggestion, index) => (
+                                    <AnimatePresence>
+                                        {showCommandPalette && (
                                             <motion.div
-                                                key={suggestion.prefix}
-                                                className={cn(
-                                                    "flex items-center gap-2 px-3 py-2 text-xs transition-colors cursor-pointer",
-                                                    activeSuggestion === index
-                                                        ? "bg-accent text-accent-foreground"
-                                                        : "text-muted-foreground hover:bg-accent/50"
-                                                )}
-                                                onClick={() => selectCommandSuggestion(index)}
-                                                initial={{ opacity: 0 }}
-                                                animate={{ opacity: 1 }}
-                                                transition={{ delay: index * 0.03 }}
+                                                ref={commandPaletteRef}
+                                                className="absolute left-4 right-4 bottom-full mb-2 backdrop-blur-xl bg-popover/95 rounded-lg z-50 shadow-lg border border-border overflow-hidden"
+                                                initial={{ opacity: 0, y: 5 }}
+                                                animate={{ opacity: 1, y: 0 }}
+                                                exit={{ opacity: 0, y: 5 }}
+                                                transition={{ duration: 0.15 }}
                                             >
-                                                <div className="w-5 h-5 flex items-center justify-center text-muted-foreground">
-                                                    {suggestion.icon}
-                                                </div>
-                                                <div className="font-medium">{suggestion.label}</div>
-                                                <div className="text-muted-foreground text-xs ml-1">
-                                                    {suggestion.prefix}
+                                                <div className="py-1">
+                                                    {commandSuggestions.map((suggestion, index) => (
+                                                        <motion.div
+                                                            key={suggestion.prefix}
+                                                            className={cn(
+                                                                "flex items-center gap-2 px-3 py-2 text-xs transition-colors cursor-pointer",
+                                                                activeSuggestion === index
+                                                                    ? "bg-accent text-accent-foreground"
+                                                                    : "text-muted-foreground hover:bg-accent/50"
+                                                            )}
+                                                            onClick={() => selectCommandSuggestion(index)}
+                                                            initial={{ opacity: 0 }}
+                                                            animate={{ opacity: 1 }}
+                                                            transition={{ delay: index * 0.03 }}
+                                                        >
+                                                            <div className="w-5 h-5 flex items-center justify-center text-muted-foreground">
+                                                                {suggestion.icon}
+                                                            </div>
+                                                            <div className="font-medium">{suggestion.label}</div>
+                                                            <div className="text-muted-foreground text-xs ml-1">
+                                                                {suggestion.prefix}
+                                                            </div>
+                                                        </motion.div>
+                                                    ))}
                                                 </div>
                                             </motion.div>
-                                        ))}
+                                        )}
+                                    </AnimatePresence>
+
+                                    <div className="p-4">
+                                        <Textarea
+                                            ref={textareaRef}
+                                            value={value}
+                                            onChange={(e) => {
+                                                setValue(e.target.value);
+                                                adjustHeight();
+                                            }}
+                                            onKeyDown={handleKeyDown}
+                                            onFocus={() => setInputFocused(true)}
+                                            onBlur={() => setInputFocused(false)}
+                                            placeholder="Ask Daisy a question..."
+                                            containerClassName="w-full"
+                                            className={cn(
+                                                "w-full px-4 py-3",
+                                                "resize-none",
+                                                "bg-transparent",
+                                                "border-none",
+                                                "text-foreground text-sm",
+                                                "focus:outline-none",
+                                                "placeholder:text-muted-foreground",
+                                                "min-h-[60px]"
+                                            )}
+                                            style={{
+                                                overflow: "hidden",
+                                            }}
+                                            showRing={false}
+                                        />
+                                    </div>
+
+                                    <AnimatePresence>
+                                        {attachments.length > 0 && (
+                                            <motion.div
+                                                className="px-4 pb-3 flex gap-2 flex-wrap"
+                                                initial={{ opacity: 0, height: 0 }}
+                                                animate={{ opacity: 1, height: "auto" }}
+                                                exit={{ opacity: 0, height: 0 }}
+                                            >
+                                                {attachments.map((file, index) => (
+                                                    <motion.div
+                                                        key={index}
+                                                        className="flex items-center gap-2 text-xs bg-secondary py-1.5 px-3 rounded-lg text-secondary-foreground"
+                                                        initial={{ opacity: 0, scale: 0.9 }}
+                                                        animate={{ opacity: 1, scale: 1 }}
+                                                        exit={{ opacity: 0, scale: 0.9 }}
+                                                    >
+                                                        <Mic className="w-3 h-3" />
+                                                        <span>{file}</span>
+                                                        <button
+                                                            onClick={() => removeAttachment(index)}
+                                                            className="text-muted-foreground hover:text-foreground transition-colors"
+                                                        >
+                                                            <XIcon className="w-3 h-3" />
+                                                        </button>
+                                                    </motion.div>
+                                                ))}
+                                            </motion.div>
+                                        )}
+                                    </AnimatePresence>
+
+                                    <div className="p-4 border-t border-border flex items-center justify-between gap-4">
+                                        <div className="flex items-center gap-3">
+                                            <motion.button
+                                                type="button"
+                                                onClick={handleAttachFile}
+                                                whileTap={{ scale: 0.94 }}
+                                                className="p-2 hover:text-foreground rounded-lg transition-colors relative group cursor-pointer bg-accent"
+                                            >
+                                                <Paperclip className="w-4 h-4" />
+                                            </motion.button>
+                                            <motion.button
+                                                type="button"
+                                                data-command-button
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    setShowCommandPalette(prev => !prev);
+                                                }}
+                                                whileTap={{ scale: 0.94 }}
+                                                className={cn(
+                                                    "p-2 hover:text-foreground rounded-lg transition-colors relative group cursor-pointer bg-accent",
+                                                    showCommandPalette && "bg-accent text-accent-foreground"
+                                                )}
+                                            >
+                                                <Command className="w-4 h-4" />
+                                            </motion.button>
+                                        </div>
+
+                                        <motion.button
+                                            type="button"
+                                            onClick={handleSendMessage}
+                                            whileHover={{ scale: 1.01 }}
+                                            whileTap={{ scale: 0.98 }}
+                                            disabled={isTyping || !value.trim()}
+                                            className={cn(
+                                                "px-4 py-2 rounded-lg text-sm font-medium transition-all",
+                                                "flex items-center gap-2",
+                                                value.trim()
+                                                    ? "bg-primary text-primary-foreground shadow-lg"
+                                                    : "bg-muted text-muted-foreground"
+                                            )}
+                                        >
+                                            {isTyping ? (
+                                                <LoaderIcon className="w-4 h-4 animate-[spin_2s_linear_infinite]" />
+                                            ) : (
+                                                <SendIcon className="w-4 h-4" />
+                                            )}
+                                            <span>Send</span>
+                                        </motion.button>
                                     </div>
                                 </motion.div>
-                            )}
-                        </AnimatePresence>
 
-                        <div className="p-4">
-                            <Textarea
-                                ref={textareaRef}
-                                value={value}
-                                onChange={(e) => {
-                                    setValue(e.target.value);
-                                    adjustHeight();
-                                }}
-                                onKeyDown={handleKeyDown}
-                                onFocus={() => setInputFocused(true)}
-                                onBlur={() => setInputFocused(false)}
-                                placeholder="Ask Daisy a question..."
-                                containerClassName="w-full"
-                                className={cn(
-                                    "w-full px-4 py-3",
-                                    "resize-none",
-                                    "bg-transparent",
-                                    "border-none",
-                                    "text-foreground text-sm",
-                                    "focus:outline-none",
-                                    "placeholder:text-muted-foreground",
-                                    "min-h-[60px]"
-                                )}
-                                style={{
-                                    overflow: "hidden",
-                                }}
-                                showRing={false}
-                            />
-                        </div>
-
-                        <AnimatePresence>
-                            {attachments.length > 0 && (
-                                <motion.div
-                                    className="px-4 pb-3 flex gap-2 flex-wrap"
-                                    initial={{ opacity: 0, height: 0 }}
-                                    animate={{ opacity: 1, height: "auto" }}
-                                    exit={{ opacity: 0, height: 0 }}
-                                >
-                                    {attachments.map((file, index) => (
-                                        <motion.div
-                                            key={index}
-                                            className="flex items-center gap-2 text-xs bg-secondary py-1.5 px-3 rounded-lg text-secondary-foreground"
-                                            initial={{ opacity: 0, scale: 0.9 }}
-                                            animate={{ opacity: 1, scale: 1 }}
-                                            exit={{ opacity: 0, scale: 0.9 }}
+                                <div className="flex flex-wrap items-center justify-center gap-2">
+                                    {commandSuggestions.map((suggestion, index) => (
+                                        <motion.button
+                                            key={suggestion.prefix}
+                                            onClick={() => selectCommandSuggestion(index)}
+                                            className="flex items-center gap-2 px-3 py-2 bg-card/50 hover:bg-card rounded-lg text-sm text-muted-foreground hover:text-foreground transition-all relative group border border-border/50 hover:border-border"
+                                            initial={{ opacity: 0, y: 10 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            transition={{ delay: index * 0.1 }}
                                         >
-                                            <Mic className="w-3 h-3" />
-                                            <span>{file}</span>
-                                            <button
-                                                onClick={() => removeAttachment(index)}
-                                                className="text-muted-foreground hover:text-foreground transition-colors"
-                                            >
-                                                <XIcon className="w-3 h-3" />
-                                            </button>
-                                        </motion.div>
+                                            {suggestion.icon}
+                                            <span>{suggestion.label}</span>
+                                            <motion.div
+                                                className="absolute inset-0 border border-primary/20 rounded-lg opacity-0 group-hover:opacity-100"
+                                                initial={false}
+                                                animate={{
+                                                    opacity: [0, 1],
+                                                    scale: [0.98, 1],
+                                                }}
+                                                transition={{
+                                                    duration: 0.3,
+                                                    ease: "easeOut",
+                                                }}
+                                            />
+                                        </motion.button>
                                     ))}
-                                </motion.div>
-                            )}
-                        </AnimatePresence>
-
-                        <div className="p-4 border-t border-border flex items-center justify-between gap-4">
-                            <div className="flex items-center gap-3">
-                                <motion.button
-                                    type="button"
-                                    onClick={handleAttachFile}
-                                    whileTap={{ scale: 0.94 }}
-                                    className="p-2 hover:text-foreground rounded-lg transition-colors relative group cursor-pointer bg-accent"
-                                >
-                                    <Paperclip className="w-4 h-4" />
-                                </motion.button>
-                                <motion.button
-                                    type="button"
-                                    data-command-button
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        setShowCommandPalette(prev => !prev);
-                                    }}
-                                    whileTap={{ scale: 0.94 }}
-                                    className={cn(
-                                        "p-2 hover:text-foreground rounded-lg transition-colors relative group cursor-pointer bg-accent",
-                                        showCommandPalette && "bg-accent text-accent-foreground"
-                                    )}
-                                >
-                                    <Command className="w-4 h-4" />
-                                </motion.button>
-                            </div>
-
-                            <motion.button
-                                type="button"
-                                onClick={handleSendMessage}
-                                whileHover={{ scale: 1.01 }}
-                                whileTap={{ scale: 0.98 }}
-                                disabled={isTyping || !value.trim()}
-                                className={cn(
-                                    "px-4 py-2 rounded-lg text-sm font-medium transition-all",
-                                    "flex items-center gap-2",
-                                    value.trim()
-                                        ? "bg-primary text-primary-foreground shadow-lg"
-                                        : "bg-muted text-muted-foreground"
-                                )}
-                            >
-                                {isTyping ? (
-                                    <LoaderIcon className="w-4 h-4 animate-[spin_2s_linear_infinite]" />
-                                ) : (
-                                    <SendIcon className="w-4 h-4" />
-                                )}
-                                <span>Send</span>
-                            </motion.button>
+                                </div>
+                            </motion.div>
                         </div>
-                    </motion.div>
 
-                    <div className="flex flex-wrap items-center justify-center gap-2">
-                        {commandSuggestions.map((suggestion, index) => (
-                            <motion.button
-                                key={suggestion.prefix}
-                                onClick={() => selectCommandSuggestion(index)}
-                                className="flex items-center gap-2 px-3 py-2 bg-card/50 hover:bg-card rounded-lg text-sm text-muted-foreground hover:text-foreground transition-all relative group border border-border/50 hover:border-border"
-                                initial={{ opacity: 0, y: 10 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ delay: index * 0.1 }}
-                            >
-                                {suggestion.icon}
-                                <span>{suggestion.label}</span>
-                                <motion.div
-                                    className="absolute inset-0 border border-primary/20 rounded-lg opacity-0 group-hover:opacity-100"
-                                    initial={false}
-                                    animate={{
-                                        opacity: [0, 1],
-                                        scale: [0.98, 1],
-                                    }}
-                                    transition={{
-                                        duration: 0.3,
-                                        ease: "easeOut",
-                                    }}
-                                />
-                            </motion.button>
-                        ))}
+                        {inputFocused && (
+                            <motion.div
+                                className="fixed w-[50rem] h-[50rem] rounded-full pointer-events-none z-0 opacity-[0.02] bg-gradient-to-r from-primary via-primary/50 to-primary blur-[96px]"
+                                animate={{
+                                    x: mousePosition.x - 400,
+                                    y: mousePosition.y - 400,
+                                }}
+                                transition={{
+                                    type: "spring",
+                                    damping: 25,
+                                    stiffness: 150,
+                                    mass: 0.5,
+                                }}
+                            />
+                        )}
                     </div>
-                </motion.div>
-            </div>
-
-            {inputFocused && (
-                <motion.div
-                    className="fixed w-[50rem] h-[50rem] rounded-full pointer-events-none z-0 opacity-[0.02] bg-gradient-to-r from-primary via-primary/50 to-primary blur-[96px]"
-                    animate={{
-                        x: mousePosition.x - 400,
-                        y: mousePosition.y - 400,
-                    }}
-                    transition={{
-                        type: "spring",
-                        damping: 25,
-                        stiffness: 150,
-                        mass: 0.5,
-                    }}
-                />
-            )}
-        </div>
-    );
-}
-
-function TypingDots() {
-    return (
-        <div className="flex items-center ml-1">
-            {[1, 2, 3].map((dot) => (
-                <motion.div
-                    key={dot}
-                    className="w-1.5 h-1.5 bg-primary rounded-full mx-0.5"
-                    initial={{ opacity: 0.3 }}
-                    animate={{
-                        opacity: [0.3, 0.9, 0.3],
-                        scale: [0.85, 1.1, 0.85]
-                    }}
-                    transition={{
-                        duration: 1.2,
-                        repeat: Infinity,
-                        delay: dot * 0.15,
-                        ease: "easeInOut",
-                    }}
-                    style={{
-                        boxShadow: "0 0 4px hsl(var(--primary) / 0.3)"
-                    }}
-                />
-            ))}
-        </div>
-    );
-}
-
-interface ActionButtonProps {
-    icon: React.ReactNode;
-    label: string;
-}
-
-function ActionButton({ icon, label }: ActionButtonProps) {
-    const [isHovered, setIsHovered] = useState(false);
-
-                    <div ref={messagesEndRef} />
                 </div>
-
                 {/* Suggestions Area */}
                 <AnimatePresence>
                     {suggestions.length > 0 && (
@@ -992,7 +946,6 @@ function ActionButton({ icon, label }: ActionButtonProps) {
         );
     }
 
-    // Show welcome interface
     return (
         <motion.button
             type="button"
@@ -1003,8 +956,8 @@ function ActionButton({ icon, label }: ActionButtonProps) {
             className="flex items-center gap-2 px-4 py-2 bg-card hover:bg-accent rounded-full border border-border text-muted-foreground hover:text-foreground transition-all relative overflow-hidden group"
         >
             <div className="relative z-10 flex items-center gap-2">
-                {icon}
-                <span className="text-xs relative z-10">{label}</span>
+                <Paperclip />
+                <span className="text-xs relative z-10">File</span>
             </div>
 
             <AnimatePresence>
@@ -1035,6 +988,16 @@ const rippleKeyframes = `
   100% { transform: scale(2); opacity: 0; }
 }
 `;
+
+function TypingDots() {
+    return (
+        <div className="flex items-center gap-1">
+            <div className="w-2 h-2 rounded-full bg-primary animate-ripple" />
+            <div className="w-2 h-2 rounded-full bg-primary animate-ripple animation-delay-200" />
+            <div className="w-2 h-2 rounded-full bg-primary animate-ripple animation-delay-400" />
+        </div>
+    )
+}
 
 if (typeof document !== 'undefined') {
     const style = document.createElement('style');
