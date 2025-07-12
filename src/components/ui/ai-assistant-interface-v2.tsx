@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "~/lib/utils";
+import Image from "next/image";
 
 interface UploadedFile {
   id: string;
@@ -77,17 +78,17 @@ export function AIAssistantInterfaceV2() {
         'quarterly-review.wav',
         'product-demo.mp3'
       ];
-      
+
       const randomType = fileTypes[Math.floor(Math.random() * fileTypes.length)];
       const randomName = fileNames[Math.floor(Math.random() * fileNames.length)];
-      
+
       const newFile: UploadedFile = {
         id: Date.now().toString(),
         name: randomName,
         type: randomType,
         size: randomType === 'audio' ? '12.5 MB' : '2.1 MB'
       };
-      
+
       setUploadedFiles((prev) => [...prev, newFile]);
       setShowUploadAnimation(false);
     }, 1500);
@@ -110,7 +111,7 @@ export function AIAssistantInterfaceV2() {
     if (inputValue.trim()) {
       setIsProcessing(true);
       console.log("Processing request:", inputValue);
-      
+
       // Simulate processing
       setTimeout(() => {
         setIsProcessing(false);
@@ -141,15 +142,16 @@ export function AIAssistantInterfaceV2() {
     <div className="min-h-screen flex flex-col items-center justify-center bg-background p-6">
       <div className="w-full max-w-4xl mx-auto flex flex-col items-center">
         {/* Daisy Logo */}
-        <motion.div 
-          className="mb-8 w-20 h-20 relative"
+        <motion.div
+          className="mb-8 w-20 h-20 relative flex flex-col items-center justify-center"
           initial={{ opacity: 0, scale: 0.8 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.5 }}
         >
-          <div className="w-full h-full bg-gradient-to-br from-primary to-primary/60 rounded-full flex items-center justify-center text-4xl shadow-lg">
-            🌸
-          </div>
+          <Image src="/daisy.png" alt="Daisy Logo" width={400} height={400} className="animate-pulse" />
+          <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/60 mb-2 -mt-2">
+            Daisy
+          </h1>
         </motion.div>
 
         {/* Welcome message */}
@@ -161,16 +163,16 @@ export function AIAssistantInterfaceV2() {
             className="flex flex-col items-center"
           >
             <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/60 mb-2">
-              Ready to assist with your meetings
+              Your AI meeting assistant
             </h1>
             <p className="text-muted-foreground max-w-md">
-              Upload recordings, get transcripts, summaries, and action items
+              Upload, transcribe, summarize, and organize
             </p>
           </motion.div>
         </div>
 
         {/* Input area with integrated functions and file upload */}
-        <motion.div 
+        <motion.div
           className="w-full bg-card border border-border rounded-xl shadow-sm overflow-hidden mb-6"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -192,7 +194,7 @@ export function AIAssistantInterfaceV2() {
           {/* Uploaded files */}
           <AnimatePresence>
             {uploadedFiles.length > 0 && (
-              <motion.div 
+              <motion.div
                 className="px-4 pb-3"
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: "auto" }}
@@ -249,9 +251,9 @@ export function AIAssistantInterfaceV2() {
                 onClick={() => setSmartInsightsEnabled(!smartInsightsEnabled)}
               />
             </div>
-            
+
             <div className="flex items-center gap-2">
-              <button 
+              <button
                 className="p-2 text-muted-foreground hover:text-foreground transition-colors rounded-lg hover:bg-accent"
                 title="Voice input"
               >
@@ -331,7 +333,7 @@ export function AIAssistantInterfaceV2() {
         </motion.div>
 
         {/* Command categories */}
-        <motion.div 
+        <motion.div
           className="w-full grid grid-cols-1 md:grid-cols-3 gap-4 mb-6"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -387,8 +389,8 @@ export function AIAssistantInterfaceV2() {
                     {activeCommandCategory === "meetings"
                       ? "Meeting suggestions"
                       : activeCommandCategory === "transcribe"
-                      ? "Transcription suggestions"
-                      : "Integration suggestions"}
+                        ? "Transcription suggestions"
+                        : "Integration suggestions"}
                   </h3>
                 </div>
                 <ul className="divide-y divide-border">
@@ -424,7 +426,7 @@ export function AIAssistantInterfaceV2() {
         </AnimatePresence>
 
         {/* Quick stats or status */}
-        <motion.div 
+        <motion.div
           className="flex items-center gap-6 text-sm text-muted-foreground"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
